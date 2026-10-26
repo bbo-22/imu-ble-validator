@@ -29,8 +29,9 @@ public final class SessionLog {
         IO.execute(() -> {
             try {
                 JSONObject o = new JSONObject(); o.put("event", type); o.put("session_id", sessionId);
+                o.put("schema_version", 2);
                 o.put("attempt_id", attempt); o.put("wall_time_ms", wall); o.put("monotonic_ns", mono);
-                for (int i=0;i<pairs.length;i+=2) o.put(pairs[i].toString(), pairs[i+1]);
+                for (int i=0;i<pairs.length;i+=2) o.put(pairs[i].toString(), pairs[i+1]==null?JSONObject.NULL:pairs[i+1]);
                 if (writer == null) throw new IOException("Session writer unavailable");
                 writer.write(o.toString()); writer.newLine(); writer.flush();
             } catch (Exception ex) { error = ex.toString(); }

@@ -20,7 +20,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 /** UI renders immutable snapshots; BLE runs on one worker, disk IO on a separate FIFO. */
 public final class MainActivity extends Activity {
-    static final String VERSION = "1.1.0";
+    static final String VERSION = "1.2.0";
     static final UUID SERVICE = UUID.fromString("00006801-afdd-43a1-9651-c6407a7c2515");
     static final UUID NOTIFY = UUID.fromString("00006803-afdd-43a1-9651-c6407a7c2515");
     static final UUID CCCD = UUID.fromString("00002902-0000-1000-8000-00805f9b34fb");
@@ -35,6 +35,8 @@ public final class MainActivity extends Activity {
     InteractionFlow flow;
     SessionLog log;
     ReadingState reading = new ReadingState();
+    DiagnosticSample latestValidSample;
+    volatile DiagnosticSample.Context diagnosticContext=new DiagnosticSample.Context(null,0,2000,false,false,false);
     final AtomicLong attemptSequence = new AtomicLong();
     volatile Map<String, DeviceInfo> found = new ConcurrentHashMap<>();
     volatile long scanEpoch, scanDeadline;
@@ -50,9 +52,9 @@ public final class MainActivity extends Activity {
     LinearLayout deviceList;
     ScrollView rootScroll;
     StableRows<Button> rows;
-    TextView statusView, angleView, detailView, scanView;
+    TextView statusView, angleView, detailView, scanView, diagnosticView, markerFeedback;
     Button stopScanButton, connectionButton;
-    EditText timeoutInput;
+    EditText timeoutInput, experimentInput;
 
     static final class DeviceInfo {
         final BluetoothDevice device; final String key, name; final int rssi;
@@ -106,10 +108,28 @@ public final class MainActivity extends Activity {
         connectionButton = button(root,"未连接",() -> worker.post(() -> disconnect("manual",true)));
         button(root,"导出最近一次会话",() -> exportLogs(true));
         button(root,"选择历史会话",() -> exportLogs(false));
-        TextView listTitle = new TextView(this);listTitle.setText("点击设备即连接；★仅为名称候选，连接后验证服务");root.addView(listTitle);
-        deviceList = new LinearLayout(this);deviceList.setOrientation(1);root.addView(deviceList);
-        resetRows();
         angleView = new TextView(this);angleView.setTextSize(30);root.addView(angleView);
+        LinearLayout diagnosticPanel=new LinearLayout(this);diagnosticPanel.setOrientation(1);
+        button(root,"展开 / 收起 三轴诊断",()->diagnosticPanel.setVisibility(diagnosticPanel.getVisibility()==View.VISIBLE?View.GONE:View.VISIBLE));
+        diagnosticView=new TextView(this);diagnosticView.setTypeface(android.graphics.Typeface.MONOSPACE);diagnosticView.setTextSize(14);diagnosticPanel.addView(diagnosticView);
+        TextView diagnosticNote=new TextView(this);
+        diagnosticNote.setText("角度单位为候选°，加速度单位为候选g；A/B/C未命名为物理X/Y/Z。轴名和旋转顺序待验证；angle1安装平面方向有实验支持，Pitch解释有较强支持。Yaw不代表已确认的北向航向。+180°与−180°表示同一方向。当前仅显示原始值，不启用相对参考。");
+        diagnosticPanel.addView(diagnosticNote);root.addView(diagnosticPanel);diagnosticPanel.setVisibility(View.GONE);
+        experimentInput=new EditText(this);experimentInput.setSingleLine(true);experimentInput.setHint("实验名称（可输入或选择）");experimentInput.setText("实验A：绕标签面法线");
+        experimentInput.setFilters(new android.text.InputFilter[]{new android.text.InputFilter.LengthFilter(60)});root.addView(experimentInput);
+        button(root,"选择实验名称",()->{
+            String[] names={"实验A：绕标签面法线","实验B：绕标签面内横向","实验C：绕竖直方向"};
+            new AlertDialog.Builder(this).setTitle("实验名称（不影响连接）").setItems(names,(d,i)->experimentInput.setText(names[i])).show();
+        });
+        String[] actions={"基准静止","开始转动","到位静止","返回基准"};
+        for(int i=0;i<actions.length;i+=2){
+            LinearLayout pair=new LinearLayout(this);pair.setOrientation(0);root.addView(pair);
+            for(int j=i;j<i+2;j++){
+                final String action=actions[j];Button marker=button(pair,action,()->markExperiment(action));
+                marker.setLayoutParams(new LinearLayout.LayoutParams(0,LinearLayout.LayoutParams.WRAP_CONTENT,1));
+            }
+        }
+        markerFeedback=new TextView(this);markerFeedback.setText("标记按钮可在无数据时使用；仅前台接收，输入实验名称不会主动断开连接。");root.addView(markerFeedback);
         detailView = new TextView(this);detailView.setTextIsSelectable(true);root.addView(detailView);
         TextView note = new TextView(this);note.setText("标签竖直、文字正向、箭头向下为基准。正对标签：顺时针增大，逆时针减小。这是传感器倾角，不是铲斗角。离开APP会断开。");root.addView(note);
         timeoutInput = new EditText(this);timeoutInput.setInputType(2);timeoutInput.setText("2000");timeoutInput.setHint("数据超时毫秒，200–60000");root.addView(timeoutInput);
@@ -117,6 +137,22 @@ public final class MainActivity extends Activity {
             try { long t=Long.parseLong(timeoutInput.getText().toString());if(t<200||t>60000)throw new IllegalArgumentException();
                 worker.post(() -> {timeout=t;record("timeout_configuration","timeout_ms",t);}); hideKeyboard();
             } catch(Exception e) {Toast.makeText(this,"请输入200–60000毫秒",Toast.LENGTH_SHORT).show();}
+        });
+        TextView listTitle = new TextView(this);listTitle.setText("点击设备即连接；★仅为名称候选，连接后验证服务");root.addView(listTitle);
+        deviceList = new LinearLayout(this);deviceList.setOrientation(1);root.addView(deviceList);
+        resetRows();
+    }
+    void markExperiment(String action) {
+        // Both timestamps and immutable sample are captured at the UI click entry, before queueing.
+        final long wall=System.currentTimeMillis(),mono=SystemClock.elapsedRealtimeNanos();
+        final DiagnosticSample.Context context=diagnosticContext;
+        final String experiment=experimentInput.getText().toString().trim();
+        final Object[] payload=context.marker(experiment,action,wall,mono);
+        String reason=context.invalidReason(mono);
+        markerFeedback.setText("已点击标记："+action+" · "+(experiment.isEmpty()?"未命名实验":experiment)+(reason.isEmpty()?" · 有效样本":" · 数据无效："+reason));
+        worker.post(()->{
+            if(log==null){ui.post(()->markerFeedback.setText("标记未保存：会话日志不可用"));return;}
+            log.eventAt(context.attempt,"marker",wall,mono,payload);
         });
     }
     void resetRows() {
@@ -259,6 +295,7 @@ public final class MainActivity extends Activity {
     boolean current(BluetoothGatt g,long attempt) {return g==gatt&&attempt==flow.attempt&&flow.busy();}
     void beginGatt(long attempt) {
         reading=new ReadingState();mtu=23;firstValid=false;subscribedAt=-1;connectAt=SystemClock.elapsedRealtime();
+        latestValidSample=null;
         state("正在连接 "+selected.name);arm(attempt,"connecting",15000);
         try {
             gatt=selected.device.connectGatt(this,false,callbacks(attempt),BluetoothDevice.TRANSPORT_LE);
@@ -324,10 +361,16 @@ public final class MainActivity extends Activity {
         worker.post(() -> {
             if(!current(g,attempt)||c!=characteristic)return;
             FrameParser.Frame f=FrameParser.parse(bytes);reading.receive(f,mono/1000000);
+            if(f.valid)latestValidSample=new DiagnosticSample(f,wall,mono,attempt,log==null?"":log.sessionId);
             if(f.valid)sessionValid++;else{sessionInvalid++;if(f.error.contains("checksum"))sessionChecksumErrors++;}
             if(log!=null)log.eventAt(attempt,"notification",wall,mono,"raw_hex",f.hex,"valid",f.valid,"error",f.error,
                     "angle1_raw",bytes.length==30?f.angleRaw:org.json.JSONObject.NULL,"angle1",bytes.length==30?f.angle:org.json.JSONObject.NULL,
-                    "counter_uint16",bytes.length==30?f.counter:org.json.JSONObject.NULL,"checksum_ok",f.checksumOk,"subscribed",reading.subscribed,"unknown_23_26_hex",f.unknown23to26);
+                    "counter_uint16",bytes.length==30?f.counter:org.json.JSONObject.NULL,"checksum_ok",f.checksumOk,"subscribed",reading.subscribed,"unknown_23_26_hex",f.unknown23to26,
+                    "length",f.length,"angle2_raw",bytes.length==30?f.angle2Raw:null,"angle3_raw",bytes.length==30?f.angle3Raw:null,
+                    "angle1_deg_candidate",bytes.length==30?f.angle:null,"angle2_deg_candidate",bytes.length==30?f.angle2:null,"angle3_deg_candidate",bytes.length==30?f.angle3:null,
+                    "accelA_raw",bytes.length==30?f.accelARaw:null,"accelB_raw",bytes.length==30?f.accelBRaw:null,"accelC_raw",bytes.length==30?f.accelCRaw:null,
+                    "accelA_g_candidate",bytes.length==30?f.accelA:null,"accelB_g_candidate",bytes.length==30?f.accelB:null,"accelC_g_candidate",bytes.length==30?f.accelC:null,
+                    "accel_norm_g_candidate",bytes.length==30?f.accelNorm:null);
             if(f.valid&&reading.subscribed) {
                 if(!firstValid){firstValid=true;++operationToken;record("first_valid_notification","since_connect_request_ms",reading.last-connectAt,"since_subscription_ms",reading.last-subscribedAt);}
                 if(!flow.phase.equals("receiving")){flow.transition(attempt,"receiving");state("正在接收有效数据");}
@@ -356,6 +399,7 @@ public final class MainActivity extends Activity {
     void summary() {record("session_summary","result",message,"valid",sessionValid,"invalid",sessionInvalid,"checksum_errors",sessionChecksumErrors,"attempt_valid",reading.validCount,"actual_mtu",mtu);}
     void publish() {
         long now=SystemClock.elapsedRealtime();boolean live=reading.live(now,timeout);
+        diagnosticContext=new DiagnosticSample.Context(latestValidSample,flow==null?0:flow.attempt,timeout,reading.connected,reading.subscribed,reading.lastPacketValid);
         String angle=live&&reading.latest!=null?String.format(Locale.ROOT,"%+.2f°",reading.latest.angle):"失效 / 尚无有效数据";
         String error=diskError+(log==null?"":log.error());
         String details="有效 "+reading.validCount+"；无效 "+reading.invalidCount+"；校验错误 "+reading.checksumErrors+
@@ -377,7 +421,10 @@ public final class MainActivity extends Activity {
         setTextIfChanged(scanView,scanning?"扫描中 · 剩余 "+Math.max(0,(scanDeadline-SystemClock.elapsedRealtime()+999)/1000)+" 秒 · "+found.size()+" 个设备":"扫描已停止 · "+found.size()+" 个设备");
         stopScanButton.setEnabled(scanning);
         connectionButton.setEnabled(d.busy);connectionButton.setText(d.phase.equals("connecting")?"取消连接":d.busy?"断开连接":"未连接");
-        setTextIfChanged(angleView,d.angle);setTextIfChanged(detailView,d.details);
+        DiagnosticSample.Context context=diagnosticContext;long nowNs=SystemClock.elapsedRealtimeNanos();
+        boolean live=context.invalidReason(nowNs).isEmpty();
+        setTextIfChanged(angleView,live?String.format(Locale.ROOT,"%+.2f°",context.sample.angle1):"失效 / 尚无有效数据");
+        setTextIfChanged(diagnosticView,DiagnosticSample.display(context,nowNs));setTextIfChanged(detailView,d.details);
         List<DeviceInfo> devices=new ArrayList<>(found.values());devices.sort(MainActivity.this::compareDevices);
         for(DeviceInfo info:devices)rows.update(info.key,info.name,info.rssi,info.key.equals(selectedKey));
         ui.postDelayed(this,400);

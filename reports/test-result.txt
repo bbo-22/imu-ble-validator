@@ -1,10 +1,25 @@
-PASS: 17151 real vectors, positive=5887, negative=11261, wraps=11, assertions=85779
+PASS: 17151 real vectors, positive=5887, negative=11261, wraps=11, assertions=257289
+
+PASS diagnostic assertions=21
 
 PASS interaction assertions=20, updates=100000, rows=31
 
 PASS session files assertions=8
 
-PASS actual SessionLog FIFO: blocked disk did not block producer; snapshot=1000, active=2000; no drops
+PASS actual SessionLog FIFO: snapshot=1000 notifications+1 marker, active=2000+1; exact marker clocks/order retained; no drops
+
+test_ambiguous_circle (test_summary.SummaryTest.test_ambiguous_circle) ... ok
+test_attempts_and_out_of_file_order (test_summary.SummaryTest.test_attempts_and_out_of_file_order) ... ok
+test_intervals_trim_and_candidates (test_summary.SummaryTest.test_intervals_trim_and_candidates) ... ok
+test_invalid_missing_and_gap (test_summary.SummaryTest.test_invalid_missing_and_gap) ... ok
+test_legacy_read_and_malformed_reported (test_summary.SummaryTest.test_legacy_read_and_malformed_reported) ... ok
+test_motion (test_summary.SummaryTest.test_motion) ... ok
+test_wrap (test_summary.SummaryTest.test_wrap) ... ok
+
+----------------------------------------------------------------------
+Ran 7 tests in 0.012s
+
+OK
 
 counts={"101013": 6267, "112137": 5797, "144426": 5087}
-vector_sha256=380c45fc6c413f24f577d31a513fedea440dae97b83dc6eea82e6b2d55828281
+vector_sha256=9a9a43cc9a14a9ac0abfae123ec649e0a58e4c3d6e3e73611850c86bb2a479b7
