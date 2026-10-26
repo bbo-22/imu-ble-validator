@@ -53,7 +53,7 @@ public final class SessionFiles {
                 String wall = value(line, "wall_time_ms");
                 if (!timeFound && !wall.isEmpty()) { e.time = Long.parseLong(wall); timeFound = true; }
                 String event = value(line, "event");
-                if (event.equals("device_selected") || event.equals("selected_device")) {
+                if (event.equals("connect_requested") || event.equals("selected_device")) {
                     String name = value(line, "device_name"); if (name.isEmpty()) name = value(line, "name"); if (!name.isEmpty()) e.device = name;
                 }
                 if (event.equals("notification") && value(line, "valid").equals("true")) e.valid++;

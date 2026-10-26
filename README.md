@@ -1,69 +1,70 @@
-# 独立 Android BLE IMU 接收验证 APP
+# IMU 接收验证 v1.1.0
 
-项目：`C:\Users\xub\Desktop\test\imu-ble-validator`。包名 `com.imu.validator`，界面名称“IMU 接收验证”。Java原生Activity，无第三方Android依赖。minSdk 26、compile/targetSdk 34，支持Android 10（API29）。仅前台扫描/接收，离开Activity、打开系统分享或销毁页面时断开；不做后台接收或自动重连。
+独立Java原生Android APP，包名`com.imu.validator`，versionCode=2；页面标题显示版本。minSdk26/targetSdk34，支持Android10。保留已验证的6801服务、6803通知特征、Notify/CCCD校验、MTU回调≥33检查及30字节帧解析；未修改Python协议工具或业务项目。
 
-## 构建与离线测试
+## 构建、测试与安装
 
-在 `C:\Users\xub\Desktop\test` 的PowerShell执行：
+在 `C:\Users\xub\Desktop\test` 执行：
 
 ```powershell
 python imu-ble-validator/tools/test.py
 python imu-ble-validator/tools/build.py
 ```
 
-已实际完成构建、zipalign、apksigner验证（v2/v3有效）及APK清单检查。准确结果/摘要见 `reports/build-result.json`，完整输出见 `reports/build-output.txt`。使用现有JDK21、SDK34、Build Tools36.0.0；未发现Gradle命令及用户缓存，直接调用官方SDK构建工具，构建不需网络。`build.py --sdk <路径> --java-home <路径>` 可指定工具链。debug.keystore是本验证项目专用调试密钥，密码android，仅用于调试APK。
+使用现有JDK21、SDK34及Build Tools36.0.0，无Gradle/第三方Android框架依赖。构建脚本只运行本机SDK工具，不操作设备。调试签名继续使用原有debug.keystore，包名相同。
 
-APK：`C:\Users\xub\Desktop\test\imu-ble-validator\build\imu-ble-validator-debug.apk`。
+APK：`C:\Users\xub\Desktop\test\imu-ble-validator\build\imu-ble-validator-debug.apk`
 
-本轮没有执行任何adb设备命令，没有安装、启动APP或操作真实蓝牙。用户人工安装命令：
+实际构建结果、大小、SHA-256及签名输出见`reports/build-result.json`和`reports/build-output.txt`。用户人工更新命令（保留应用数据及旧日志；不要先卸载）：
 
 ```powershell
 & 'D:\Android\SDK\platform-tools\adb.exe' -s N6HBB21921005841 install -r 'C:\Users\xub\Desktop\test\imu-ble-validator\build\imu-ble-validator-debug.apk'
 ```
 
-## 手机操作
+本轮没有执行adb设备命令、安装或启动APP，也没有连接IMU。测试通过和构建成功不代表真实IMU联调成功。
 
-1. 安装后从桌面打开“IMU 接收验证”。关闭其他可能占用传感器的APP。手动开启手机蓝牙；Android10还需打开系统位置服务。
-2. 点“扫描 / 重新扫描”，允许使用期间的精确位置权限，授权后再次点击扫描。Android12+改为请求附近设备权限。APP不申请后台定位、广泛存储或网络权限。
-3. 扫描持续20秒，列表显示名称、当前扫描地址和RSSI。★突出名称包含BDA446T的候选；名称不能唯一确认身份。人工对照实物选择，点击才连接。地址来自本次扫描，没有复制HCI日志MAC。
-4. 观察“连接→服务发现→MTU→远端CCCD确认→首通知”。必须发现6801服务及6803特征，检查Notify与2902描述符；动态使用API对象，不硬编码属性句柄。MTU请求128，仅在回调status=0且实际MTU≥33后继续；本地通知开关成功后还要等待远端CCCD写入回调成功。任何一步失败/超时都会记录并释放连接，不标为准备就绪。
-5. 收到有效帧后显示安装平面倾角。标签面竖直、正向可读、箭头向下为本次基准；正对标签，顺时针增大。未清零、未补偿安装角，不是铲斗角。默认2秒无通知即失效，输入200–60000毫秒并点应用可修改；无效帧也立即使显示失效。失效时隐藏旧角度，保留最近hex和错误。
-6. 可手动断开、重新扫描和选择重连。切换页面会断开；返回后需人工重连，无无限重连。
-7. 点“导出会话日志”，选择本次会话文件，系统分享至文件保存工具、邮件等。导出操作先断开并写摘要；保留所有历史会话，可逐个分享。会话存储在APP内部files/sessions，无存储权限。卸载会清除日志，请先导出。
+## 本轮修复
 
-## 代码与日志
+- 设备行按扫描标识复用：广播回调只覆盖设备快照，UI每400ms合并RSSI；不会逐广播移除行。新增行按候选优先、设备标识顺序插入，已存在行不因RSSI或后到名称移动；任意设备行从DOWN到UP/CANCEL期间暂停整份列表布局/文字更新，松开后展示合并结果。
+- 扫描有实时剩余秒数和设备数，可主动停止/重新扫描。独立scan_state和gatt_phase；旧扫描token及GATT实例/attempt检查保留并加强。
+- 扫描中可点设备：即时提示“正在连接 设备名”、突出目标并滚到状态/取消按钮处，随后停扫和连接。重复请求保留拒绝原因，不取消已有连接。
+- 连接、服务发现、MTU、CCCD、等待首有效帧各有有限超时；失败原因保留，可再次点击重试。连接期间按钮为“取消连接”，其他活动连接阶段为“断开连接”，未连接时禁用并显示“未连接”。
+- BLE处理独立HandlerThread，磁盘写入独立FIFO执行器，UI读取不可变快照。每条原始通知仍写入JSONL，不逐帧打印logcat。
+- 会话名如`session-000012_20261026-171005.jsonl`，序号写入私有目录并扫描已有文件恢复。正常重启递增，同秒/时钟回拨不覆盖。一次Activity会话可含多个连接尝试，用attempt_id区分；点击不再偷偷切换日志。
+- “导出最近一次会话”与“选择历史会话”，显示序号、北京时间、设备、结果和有效帧数；兼容1.0内容。弹出列表时收起键盘。当前文件通过FIFO边界生成快照后分享，原文件继续写入；打开系统分享离开前台仍会按既有策略断开。快照记录的是导出边界以前的数据。
 
-`FrameParser.java`独立于Android，处理unsigned byte、signed int16、uint16及累加校验，保留raw hex和失败原因；未知字段仅用偏移命名。byte1=1D按当前观察格式检查，不宣布通用长度规则。前缀2–4保留、不擅自赋语义。`ReadingState.java`用单调时间处理频率、失效和断开。
+## 人工验收
 
-`MainActivity.java`所有GATT状态在主Handler串行化；连接15秒、发现12秒、MTU/CCCD各10秒超时。只在对应回调成功后启动下一操作。session generation加GATT实例检查阻止旧回调污染；断开立即使数据失效，调用disconnect/close释放。手动断开记录请求原因并立即close，不等待已关闭GATT的断开回调；远端断开回调保留实际status/new_state。没有任何6802写入。
+1. 更新后确认标题为 **v1.1.0**。开启手机蓝牙与位置服务；Android10授权使用期间精确定位后再点扫描。Android12+请求附近设备权限。
+2. 扫描倒计时运行时，点`BDA446T-26040035`。应立即看到“正在连接”，扫描停止，按钮变为取消连接。
+3. 应继续看到服务发现→MTU→CCCD确认→等待首个有效帧→正在接收；若失败，应有明确原因/超时，约15秒连接超时后可重试。服务发现12秒、MTU/CCCD/首有效帧各10秒。没有收到首有效帧不能显示为接收成功。
+4. 连接期间再次点设备应提示已有连接任务；取消后可重试。重扫会废止旧扫描计时器，主动停止后保留可点击结果。失败后离开/返回页面不应抹掉失败说明。
+5. 有效数据时倾角可显示；无效帧、断开、超过可配置数据超时均使角度失效。默认2000ms，可设置200–60000ms。未清零/补偿，不是铲斗角。
+6. 点最近会话导出，或历史列表选择旧1.0文件。分享文件名带可读序号时间（旧文件保持原名），列表应新在前。一次验收只需静止连接，无需重复动作实验。
 
-通知回调先复制字节并记录墙钟毫秒和elapsedRealtimeNanos，再进入串行处理；每条通知写JSONL并flush，UI每200ms刷新，不按UI刷新率抽样丢帧。内部闪存IO可能拖慢主线程，属于轻量验证APP的限制；写入异常会持续显示在界面，不能视为日志完整。系统杀进程/断电可能丢失尚未处理回调，不保证后台连续采集。
+## 诊断事件与故障反馈
 
-JSONL事件包括所选设备、连接状态码、发现的全部服务/特征/属性/描述符、MTU回调、CCCD结果、通知、首帧延迟、超时、错误及session_summary。每行均有wall_time_ms和monotonic_ns；通知时间在回调入口采集。angle1是当前观察格式的传感器倾角；未知23–26输出hex，计数单位未确定。接收频率为全部通知的会话平均频率，包含无效帧，使用单调时间。日志保存在私有目录，分享使用只读ContentProvider临时URI授权。
+每行有session_id、attempt_id、wall_time_ms、monotonic_ns。`device_row_click`另保留触摸点击入口时钟；`device_selected`在连接拒绝判断和权限校验之前发出。
 
-## 实际验证与证据范围
+事件链：scan_requested / started / stopped / failed；device_selected；connect_requested / rejected / connect_gatt_result；connection_state_changed；service_discovery_started / completed；mtu_requested / changed；local_notification_enable；subscription_started / completed；first_valid_notification；notification；operation_timeout；disconnect_requested / completed；exception；ui_state；session_summary。
 
-测试从现有三份HCI导出的frames.json读取全部17151条真实通知，再调用现有Python frame.parse_frame生成期望值，逐条核对Java原始hex、angle1_raw、angle1、counter。覆盖正角5887帧、负角11261帧、11次计数回绕；另验证错误校验、错误头、过短/超长、负数与uint16、超时边界、断开及无效帧失效。85779条断言通过，见reports/test-result.txt及test-vectors/real-frames.tsv。现有Python16项测试重新运行通过，未修改协议分析工具。
+`connect_gatt_result.returned_instance`只表示调用返回对象；status回调、服务/MTU/CCCD及首有效帧才分别证明后续阶段。disconnect_completed为本地disconnect/close完成，显式标记local_gatt_closed，不伪称收到远端断开确认。真实远端断开状态码来自connection_state_changed。
 
-APK签名/打包及纯Java逻辑已离线验证；Android权限弹窗、扫描、厂商BLE栈、实际MTU/订阅、通知到达、UI显示和系统分享尚未真机验证。不能将离线测试通过当作真机联调成功。
-
-## 真机失败时最小补充信息
-
-无需重做动作实验。保留失败会话JSONL，提供失败步骤、界面状态/错误、Android版本、是否开启位置服务及蓝牙。若崩溃，人工执行下面命令后提供文本：
+若仍失败，导出最新会话JSONL，并说明界面版本/最后状态。设备点击入口无device_selected：继续检查触摸/UI路径；有device_selected但connect_rejected：按reason处理；connect_requested但无connect_gatt_result：检查调用异常；已返回GATT但无回调：查看connecting超时；后续按发现、MTU、订阅、首帧逐级定位。如果崩溃，可人工执行：
 
 ```powershell
 & 'D:\Android\SDK\platform-tools\adb.exe' -s N6HBB21921005841 logcat -d -b crash > 'C:\Users\xub\Desktop\test\imu-ble-validator\reports\device-crash.txt'
-# APP分享不可用时，可读取debug应用内部文件列表，再将具体文件复制出来
+# 分享不可用时，列出内部文件并替换实际文件名读取
 & 'D:\Android\SDK\platform-tools\adb.exe' -s N6HBB21921005841 shell run-as com.imu.validator ls files/sessions
 & 'D:\Android\SDK\platform-tools\adb.exe' -s N6HBB21921005841 exec-out run-as com.imu.validator cat files/sessions/替换为实际文件名.jsonl > 'C:\Users\xub\Desktop\test\imu-ble-validator\reports\device-session.jsonl'
 ```
 
-若CCCD成功但无通知，只需静止连接一次，导出超时会话；先根据MTU、CCCD状态和发现结果定位，不发送猜测初始化命令。仅在APP日志无法定位时再补一段“扫描→连接→失败”的HCI日志。
+## 离线验证与边界
 
-## 官方API依据
+`tools/test.py`：全部17151帧Java/Python移植交叉核验（85779条断言）；高频100000次扫描更新行身份、点击到可注入BLE端口、重复拒绝、旧scan token、旧attempt、取消/失败/超时后重试；日志序号/防覆盖/回拨/历史兼容；实际SessionLog在磁盘阻塞替身下无同步阻塞、2000条无丢失及1000条快照边界。测试用Android/JSON最小替身，不打包进APK。
 
-- [Android Bluetooth permissions](https://developer.android.com/develop/connectivity/bluetooth/bt-permissions)：Android10前台扫描请求FINE_LOCATION及系统位置开关；Android12+请求SCAN/CONNECT，使用neverForLocation；本APP不在后台扫描，不申请BACKGROUND_LOCATION。
-- [BluetoothGatt](https://developer.android.com/reference/android/bluetooth/BluetoothGatt)：discoverServices、requestMtu、setCharacteristicNotification、writeDescriptor及close语义；请求返回值只表示操作启动。
-- [BluetoothGattCallback](https://developer.android.com/reference/android/bluetooth/BluetoothGattCallback)：根据onMtuChanged、onDescriptorWrite确认结果；兼容API33新增带value的通知回调，Android10使用旧回调并即时复制数据。
+根因证据及未确认项见`reports/diagnosis-v1.1.md`。`tools/repro_click.py`刻意重放冻结1.0方法：默认应失败（connect_calls=0），加`--no-refresh`控制组通过（connect_calls=1）。它是诊断模型，未替代Android真机触摸分发或厂商BLE栈测试。最终回归走新代码公共边界。
 
-SDK34编译时保留旧setValue/writeDescriptor API以兼容Android10（编译有弃用警告，属于预期）。Android14可能将MTU请求改为517，因此只检查实际回调值≥33，不要求恰为128。
+内部存储只读ContentProvider按临时URI授权分享，无广泛存储权限；不发6802初始化/校准命令。UI限频不丢通知；系统杀进程、存储失败或长期磁盘吞吐低于通知输入仍可能影响完整性，日志错误会显示。保持APP前台；没有自动重连或后台连接服务。
+
+官方依据：[Android BLE权限](https://developer.android.com/develop/connectivity/bluetooth/bt-permissions)、[BluetoothGatt](https://developer.android.com/reference/android/bluetooth/BluetoothGatt)、[BluetoothGattCallback](https://developer.android.com/reference/android/bluetooth/BluetoothGattCallback)。

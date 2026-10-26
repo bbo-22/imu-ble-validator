@@ -1,6 +1,6 @@
 PASS: 17151 real vectors, positive=5887, negative=11261, wraps=11, assertions=85779
 
-PASS interaction assertions=17, updates=100000, rows=16
+PASS interaction assertions=20, updates=100000, rows=31
 
 PASS session files assertions=8
 

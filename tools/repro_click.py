@@ -1,7 +1,7 @@
 """Execute v1 renderDevices verbatim against a minimal touch-target lifetime harness.
 The fake View only models Android's detached touch target; no device operations.
 """
-import re,subprocess
+import re,subprocess,sys
 from pathlib import Path
 root=Path(__file__).resolve().parents[1]
 source=(root/'reports/baseline-v1/MainActivity.java.txt').read_text(encoding='utf8')
@@ -30,8 +30,10 @@ public class Repro {
  System.out.println("same_target_attached="+pressed.attached+" connect_calls="+r.calls);
  if(r.calls!=1)throw new AssertionError("Target detached between DOWN/UP: click lost"); }
 }'''
+if '--no-refresh' in sys.argv:
+    program=program.replace('r.renderDevices();if(pressed.attached)', 'if(pressed.attached)')
 (out/'Repro.java').write_text(program,encoding='utf8')
 subprocess.run(['javac','-encoding','UTF-8','-d',str(out),str(out/'Repro.java')],check=True)
 r=subprocess.run(['java','-cp',str(out),'Repro'],capture_output=True,text=True)
-(root/'reports/repro-v1.txt').write_text(r.stdout+r.stderr,encoding='utf8')
+(root/('reports/repro-v1-control.txt' if '--no-refresh' in sys.argv else 'reports/repro-v1.txt')).write_text(r.stdout+r.stderr,encoding='utf8')
 print(r.stdout+r.stderr);raise SystemExit(r.returncode)

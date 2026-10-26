@@ -126,6 +126,12 @@ public final class MainActivity extends Activity {
                 Button row = new Button(MainActivity.this);row.setTag(key);
                 row.setEnabled(true);row.setClickable(true);
                 row.setOnClickListener(v -> deviceClicked(key));
+                row.setOnTouchListener((v,event) -> {
+                    int action=event.getActionMasked();
+                    if(action==MotionEvent.ACTION_DOWN)rows.touchDown(key);
+                    else if(action==MotionEvent.ACTION_UP||action==MotionEvent.ACTION_CANCEL)rows.touchEnd(key);
+                    return false; // preserve Android's native click/scroll dispatch
+                });
                 // Insert only the NEW row; existing pressed views remain attached.
                 DeviceInfo info=found.get(key);int index=0;
                 for(;index<deviceList.getChildCount();index++) {
@@ -176,8 +182,11 @@ public final class MainActivity extends Activity {
             }
         });
     }
+    String[] requiredPermissions() {
+        return Build.VERSION.SDK_INT>=31?new String[]{Manifest.permission.BLUETOOTH_SCAN,Manifest.permission.BLUETOOTH_CONNECT}:new String[]{Manifest.permission.ACCESS_FINE_LOCATION};
+    }
     String permissionFailure() {
-        String[] p=Build.VERSION.SDK_INT>=31?new String[]{Manifest.permission.BLUETOOTH_SCAN,Manifest.permission.BLUETOOTH_CONNECT}:new String[]{Manifest.permission.ACCESS_FINE_LOCATION};
+        String[] p=requiredPermissions();
         for(String permission:p)if(checkSelfPermission(permission)!=PackageManager.PERMISSION_GRANTED)return "permission_denied:"+permission;
         if(!foreground)return "activity_not_foreground";
         if(adapter==null)return "bluetooth_not_supported";
@@ -185,7 +194,7 @@ public final class MainActivity extends Activity {
         return null;
     }
     void requestMissingPermissions() {
-        String[] p=Build.VERSION.SDK_INT>=31?new String[]{Manifest.permission.BLUETOOTH_SCAN,Manifest.permission.BLUETOOTH_CONNECT}:new String[]{Manifest.permission.ACCESS_FINE_LOCATION};
+        String[] p=requiredPermissions();
         List<String> missing=new ArrayList<>();for(String s:p)if(checkSelfPermission(s)!=PackageManager.PERMISSION_GRANTED)missing.add(s);
         if(!missing.isEmpty())requestPermissions(missing.toArray(new String[0]),10);
     }
@@ -414,7 +423,18 @@ public final class MainActivity extends Activity {
         send.setClipData(ClipData.newRawUri("IMU log snapshot",uri));startActivity(Intent.createChooser(send,"导出会话快照"));
     }
     @Override protected void onStart(){super.onStart();foreground=true;sharing=false;}
-    @Override protected void onStop(){foreground=false;worker.post(()->{if(flow!=null){flow.stopScan();if(gatt!=null)disconnect("activity_stopped",false);summary();}});super.onStop();}
+    @Override protected void onStop(){
+        foreground=false;
+        worker.post(()->{
+            if(flow!=null){
+                boolean wasScanning=scanning;flow.stopScan();
+                if(gatt!=null)disconnect("activity_stopped",false);
+                else if(wasScanning&&!flow.busy())state("未连接；扫描因离开页面停止");
+                summary();
+            }
+        });
+        super.onStop();
+    }
     @Override protected void onDestroy(){
         ui.removeCallbacksAndMessages(null);
         worker.post(()->{worker.removeCallbacksAndMessages(null);if(log!=null){summary();log.close();}bleThread.quitSafely();});super.onDestroy();
