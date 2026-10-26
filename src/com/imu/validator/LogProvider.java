@@ -4,7 +4,14 @@ import android.content.*; import android.database.*; import android.net.Uri; imp
 public final class LogProvider extends ContentProvider {
  public boolean onCreate(){return true;}
  private File file(Uri u) throws FileNotFoundException {
-  try { File dir=new File(getContext().getFilesDir(),"sessions").getCanonicalFile(); File f=new File(dir,u.getLastPathSegment()).getCanonicalFile(); if(!dir.equals(f.getParentFile())||!f.isFile()||!f.getName().endsWith(".jsonl")) throw new IOException(); return f; }
+  try {
+   java.util.List<String> parts=u.getPathSegments();
+   File dir=new File(getContext().getFilesDir(),"sessions").getCanonicalFile();
+   if(parts.size()==2&&parts.get(0).equals("snapshots"))dir=new File(dir,"snapshots").getCanonicalFile();
+   else if(parts.size()!=1)throw new IOException("Invalid path");
+   File f=new File(dir,u.getLastPathSegment()).getCanonicalFile();
+   if(!dir.equals(f.getParentFile())||!f.isFile()||!f.getName().endsWith(".jsonl"))throw new IOException();return f;
+  }
   catch(IOException e){throw new FileNotFoundException("Invalid session URI");}
  }
  public String getType(Uri u){return "application/x-ndjson";}

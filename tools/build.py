@@ -9,6 +9,9 @@ def main():
     p=argparse.ArgumentParser();p.add_argument('--sdk',default=os.environ.get('ANDROID_HOME',r'D:\Android\SDK'));p.add_argument('--java-home',default=os.environ.get('JAVA_HOME',r'C:\Program Files\Eclipse Adoptium\jdk-21.0.12.101-hotspot'));a=p.parse_args()
     sdk=Path(a.sdk);jdk=Path(a.java_home);os.environ['JAVA_HOME']=str(jdk);bt=sdk/'build-tools/36.0.0';android=sdk/'platforms/android-34/android.jar';out=ROOT/'build'
     for n in ['classes','dex','gen','test-classes']: (out/n).mkdir(parents=True,exist_ok=True)
+    for f in (out/'classes').rglob('*.class'):
+        assert f.resolve().is_relative_to((ROOT/'build/classes').resolve())
+        f.unlink()
     run([bt/'aapt2.exe','link','--manifest',ROOT/'AndroidManifest.xml','-I',android,'--java',out/'gen','-o',out/'base.apk'])
     sources=list((ROOT/'src').rglob('*.java'))
     run([jdk/'bin/javac.exe','-encoding','UTF-8','-source','8','-target','8','-bootclasspath',str(bt/'core-lambda-stubs.jar')+os.pathsep+str(android),'-d',out/'classes',*sources])

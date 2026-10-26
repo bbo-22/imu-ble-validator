@@ -4,7 +4,7 @@ The fake View only models Android's detached touch target; no device operations.
 import re,subprocess
 from pathlib import Path
 root=Path(__file__).resolve().parents[1]
-source=(root/'src/com/imu/validator/MainActivity.java').read_text(encoding='utf8')
+source=(root/'reports/baseline-v1/MainActivity.java.txt').read_text(encoding='utf8')
 def method(name):
     match=re.search(r' (?:void|String|boolean) '+name+r'\(',source)
     if not match: raise ValueError(name)

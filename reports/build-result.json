@@ -1,10 +1,10 @@
 {
   "apk": "C:\\Users\\xub\\Desktop\\test\\imu-ble-validator\\build\\imu-ble-validator-debug.apk",
-  "size": 45459,
-  "sha256": "3529c680dce92eec3d6682f75d7d677514aaafd6cafbdef0aea70fda407190e4",
+  "size": 74131,
+  "sha256": "b5030ea2cd1abad5e1bd17d7dc471287c3898b1196a13186e29c3747a542a4be",
   "compile_sdk": 34,
   "target_sdk": 34,
   "min_sdk": 26,
   "build_tools": "36.0.0",
-  "jdk": "C:\\Users\\xub\\.jdks\\jbr-17.0.14"
+  "jdk": "C:\\Program Files\\Eclipse Adoptium\\jdk-21.0.12.101-hotspot"
 }
