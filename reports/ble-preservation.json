@@ -1,0 +1,12 @@
+{
+  "void resetRows()": true,
+  "void startScan()": true,
+  "void stopScanner(": true,
+  "void arm(": true,
+  "boolean current(": true,
+  "BluetoothGattCallback callbacks(": true,
+  "void disconnect(": true,
+  "void exportLogs(": true,
+  "void exportFile(": true,
+  "void shareSnapshot(": true
+}

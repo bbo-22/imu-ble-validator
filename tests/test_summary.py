@@ -42,5 +42,9 @@ class SummaryTest(unittest.TestCase):
             events,issues=load(p);self.assertEqual(len(issues),1);self.assertEqual(len(events),1)
     def test_ambiguous_circle(self):
         self.assertIsNone(circular([0,180])['circular_mean_deg']);self.assertTrue(circular([0,180])['ambiguous'])
+    def test_short_interval_trim_has_no_negative_gap(self):
+        trace=[event(0,'marker',action='基准静止'),event(1,'marker',action='开始转动')]
+        result=summarize(trace)['intervals'][0]
+        self.assertIn('empty_interval_after_start_trim',result['flags']);self.assertEqual(result['max_gap_ms'],0)
 
 if __name__=='__main__':unittest.main()

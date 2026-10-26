@@ -88,7 +88,7 @@ def summarize(events,trim_seconds=2,min_samples=20,gap_ms=2000,angle_span=5,acce
             if len(packets)-len(valid)-missing:flags.append('invalid_or_unsubscribed_notifications')
             if any(e.get('event') in ('data_timeout','disconnect_requested','disconnect_completed') for e in segment):flags.append('data_invalid_or_disconnected_in_interval')
             times=[start]+[e['monotonic_ns'] for e,v in valid]+[end]
-            maxgap=max([b-a for a,b in zip(times,times[1:])] or [0])/1e6
+            maxgap=max([0]+[b-a for a,b in zip(times,times[1:])])/1e6
             if maxgap>gap_ms:flags.append('data_gap_exceeds_timeout')
             angles={k:circular([v[k] for e,v in valid]) for k in ANGLES}
             accels={k:scalar([v[k] for e,v in valid]) for k in ACCELS}

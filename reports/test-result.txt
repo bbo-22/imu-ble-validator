@@ -14,12 +14,13 @@ test_intervals_trim_and_candidates (test_summary.SummaryTest.test_intervals_trim
 test_invalid_missing_and_gap (test_summary.SummaryTest.test_invalid_missing_and_gap) ... ok
 test_legacy_read_and_malformed_reported (test_summary.SummaryTest.test_legacy_read_and_malformed_reported) ... ok
 test_motion (test_summary.SummaryTest.test_motion) ... ok
+test_short_interval_trim_has_no_negative_gap (test_summary.SummaryTest.test_short_interval_trim_has_no_negative_gap) ... ok
 test_wrap (test_summary.SummaryTest.test_wrap) ... ok
 
 ----------------------------------------------------------------------
-Ran 7 tests in 0.012s
+Ran 8 tests in 0.009s
 
 OK
 
 counts={"101013": 6267, "112137": 5797, "144426": 5087}
-vector_sha256=9a9a43cc9a14a9ac0abfae123ec649e0a58e4c3d6e3e73611850c86bb2a479b7
+vector_sha256=e81a1ce5df147a501e25211d0cd378ce24b5b06149f02202ba049c41ac657358

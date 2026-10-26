@@ -1,6 +1,6 @@
-# IMU 接收验证 v1.1.0
+# IMU 接收验证 v1.2.0
 
-独立Java原生Android APP，包名`com.imu.validator`，versionCode=2；页面标题显示版本。minSdk26/targetSdk34，支持Android10。保留已验证的6801服务、6803通知特征、Notify/CCCD校验、MTU回调≥33检查及30字节帧解析；未修改Python协议工具或业务项目。
+独立Java原生Android APP，包名`com.imu.validator`，versionCode=3；页面标题显示v1.2.0。minSdk26/targetSdk34，支持Android10。保留已通过用户真机稳定性验收的1.1扫描/连接/订阅/断开流程、6801服务、6803通知特征、Notify/CCCD校验及MTU回调≥33检查；新增三轴候选诊断与人工实验标记。未修改Python协议工具或业务项目。
 
 ## 构建、测试与安装
 
@@ -23,7 +23,48 @@ APK：`C:\Users\xub\Desktop\test\imu-ble-validator\build\imu-ble-validator-debug
 
 本轮没有执行adb设备命令、安装或启动APP，也没有连接IMU。测试通过和构建成功不代表真实IMU联调成功。
 
-## 本轮修复
+## 三轴诊断与人工实验（1.2新增）
+
+主angle1继续保留。展开“三轴诊断”后同时显示angle1/Roll候选、angle2/Pitch候选、angle3/Yaw候选、加速度A/B/C及向量模长，保留两位小数。角度为候选°、加速度为候选g；A/B/C不等同已确认的物理X/Y/Z。angle1安装平面方向/尺度已有实验支持，angle2/Pitch解释有较强支持；angle3/Yaw的参考方向及长期漂移未确认，不是罗盘航向。轴名与旋转顺序仍待验证。
+
+主角度与全部诊断字段使用同一有效性判断：断开、超时、尚未订阅、最近帧无效时统一显示失效。原始角度保留设备的±180表示，+180与−180是相同方向。本轮暂不启用可选的“本地参考”功能，避免引入跨会话参考行为。离线圆周波动只是相对统计中心的偏差，不是用户参考角差或三维相对姿态。
+
+手机实验：
+
+1. 连接并确认收到有效数据，展开诊断区。设备扫描列表已恢复到页面最下方。
+2. 选择或输入实验名称（最多60字符），例如A绕标签面法线、B绕标签面内横向、C绕竖直方向。编辑名称或打开选择对话框不会主动断开；保持APP前台，切到其他APP/系统分享仍按既有策略断开。
+3. 基准姿态稳定后点击“基准静止”；动作前点击“开始转动”；到位后点击“到位静止”；开始返回时点击“返回基准”。返回后若还需统计基准稳定段，再点击“基准静止”。建议稳定段保留至少5–10秒，供默认去掉前2秒后统计。
+4. 每次点击立即有文字反馈。无数据也能标记，但角度为null并记录disconnected/no_valid_sample/data_timeout等原因。反馈“已点击”表示事件已提交后台写入，写盘异常仍显示在日志错误处。
+5. 完成后导出最近会话。当前会话先生成一致快照，再打开系统分享；不因UI限频丢弃通知。
+
+## JSONL schema 2 与离线汇总
+
+沿用JSONL事件、session_id、attempt_id、墙钟/单调时间和旧angle1字段，每行新增schema_version=2。notification增加angle1_raw/angle2_raw/angle3_raw、angle1_deg_candidate/angle2_deg_candidate/angle3_deg_candidate、accelA/B/C_raw与accelA/B/C_g_candidate、accel_norm_g_candidate及length；不向设备写任何校准或清零命令。
+
+marker含experiment_name、action、点击时的wall_time_ms/monotonic_ns及click_*别名、sample_wall_time_ms/sample_monotonic_ns/sample_age_ms、sample_session_id/sample_attempt_id、data_valid/invalid_reason与三个候选角度。点击入口立即复制最近已处理有效样本及其上下文，随后排队的磁盘写入不会改写时间或换成另一个attempt的样本。样本时间来自通知回调入口；无效时保留可用的样本时间和年龄供诊断，但三个角度均为null。
+
+把手机导出的会话保存为`imu-ble-validator/reports/device-session.jsonl`后，在工作根目录执行：
+
+```powershell
+python imu-ble-validator/tools/summarize_session.py imu-ble-validator/reports/device-session.jsonl --output imu-ble-validator/reports/device-summary.json --csv imu-ble-validator/reports/device-summary.csv
+# 可调整稳定段开头避让、最低样本数、数据空隙阈值（与手机超时设置对应）
+python imu-ble-validator/tools/summarize_session.py imu-ble-validator/reports/device-session.jsonl --trim-seconds 3 --min-samples 30 --gap-ms 2000 --output imu-ble-validator/reports/device-summary.json
+```
+
+脚本仅用Python标准库。按session/attempt分组，每个“基准静止/到位静止”到同组下一个动作标记形成左闭右开区间，默认剔除开头2秒；末尾没有下一标记时统计到最后事件并标记open_interval_no_next_marker。保留原始行号，按单调时间排序，墙钟仅供展示，避免系统校时改变分段。
+
+JSON包含三个角度的圆周均值/圆周中位、原始最小/最大、关于圆周中心的标准差/弧跨度/P5和P95偏差；加速度及模长输出均值/中位/标准差/范围。CSV便于快速查看；完整波动与flags在JSON。跨±180、圆周方向不明确、样本不足、无效帧、断开、数据空隙和运动/漂移候选都会明确标记。运动候选默认阈值：任一角度弧跨度>5°或任一加速度轴标准差>0.05g，可用--motion-angle-span/--motion-accel-std调整，属于诊断启发式，不是物理轴确认或融合姿态判定。
+
+relative_field_statistics固定为null，因为没有启用本地参考。旧版无marker日志可读，但会明确输出no_stable_markers，不虚构动作区间；旧通知缺少多轴字段时，在当前工作目录结构下复用已有Python帧解析器从raw_hex恢复，解析器不可用则标记缺失。坏JSONL记录保留在parse_issues并返回码2，仍输出能够完成的汇总。
+
+可重复的离线演示（真实HCI值、**合成标记，并非手机实验**）：
+
+```powershell
+python imu-ble-validator/tools/make_summary_example.py
+python imu-ble-validator/tools/summarize_session.py imu-ble-validator/reports/examples/real-replay-marked.jsonl --output imu-ble-validator/reports/examples/summary.json --csv imu-ble-validator/reports/examples/summary.csv
+```
+
+## 沿用的1.1稳定功能
 
 - 设备行按扫描标识复用：广播回调只覆盖设备快照，UI每400ms合并RSSI；不会逐广播移除行。新增行按候选优先、设备标识顺序插入，已存在行不因RSSI或后到名称移动；任意设备行从DOWN到UP/CANCEL期间暂停整份列表布局/文字更新，松开后展示合并结果。
 - 扫描有实时剩余秒数和设备数，可主动停止/重新扫描。独立scan_state和gatt_phase；旧扫描token及GATT实例/attempt检查保留并加强。
@@ -35,7 +76,7 @@ APK：`C:\Users\xub\Desktop\test\imu-ble-validator\build\imu-ble-validator-debug
 
 ## 人工验收
 
-1. 更新后确认标题为 **v1.1.0**。开启手机蓝牙与位置服务；Android10授权使用期间精确定位后再点扫描。Android12+请求附近设备权限。
+1. 更新后确认标题为 **v1.2.0**。开启手机蓝牙与位置服务；Android10授权使用期间精确定位后再点扫描。Android12+请求附近设备权限。
 2. 扫描倒计时运行时，点`BDA446T-26040035`。应立即看到“正在连接”，扫描停止，按钮变为取消连接。
 3. 应继续看到服务发现→MTU→CCCD确认→等待首个有效帧→正在接收；若失败，应有明确原因/超时，约15秒连接超时后可重试。服务发现12秒、MTU/CCCD/首有效帧各10秒。没有收到首有效帧不能显示为接收成功。
 4. 连接期间再次点设备应提示已有连接任务；取消后可重试。重扫会废止旧扫描计时器，主动停止后保留可点击结果。失败后离开/返回页面不应抹掉失败说明。
@@ -61,7 +102,7 @@ APK：`C:\Users\xub\Desktop\test\imu-ble-validator\build\imu-ble-validator-debug
 
 ## 离线验证与边界
 
-`tools/test.py`：全部17151帧Java/Python移植交叉核验（85779条断言）；高频100000次扫描更新行身份、点击到可注入BLE端口、重复拒绝、旧scan token、旧attempt、取消/失败/超时后重试；日志序号/防覆盖/回拨/历史兼容；实际SessionLog在磁盘阻塞替身下无同步阻塞、2000条无丢失及1000条快照边界。测试用Android/JSON最小替身，不打包进APK。
+`tools/test.py`：全部17151帧的六个字段Java/Python移植交叉核验（257289条断言）；高频100000次扫描更新行身份、点击到可注入BLE端口、重复拒绝、旧scan token、旧attempt、取消/失败/超时后重试；日志序号/防覆盖/回拨/历史兼容；实际SessionLog在磁盘阻塞替身下无同步阻塞，2000条通知加1条marker无丢失，快照边界1000条通知加marker，精确保留点击时钟。新增诊断与离线分段/圆周统计测试。测试用Android/JSON最小替身，不打包进APK。
 
 根因证据及未确认项见`reports/diagnosis-v1.1.md`。`tools/repro_click.py`刻意重放冻结1.0方法：默认应失败（connect_calls=0），加`--no-refresh`控制组通过（connect_calls=1）。它是诊断模型，未替代Android真机触摸分发或厂商BLE栈测试。最终回归走新代码公共边界。
 

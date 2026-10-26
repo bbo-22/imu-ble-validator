@@ -48,7 +48,7 @@ densities:
 {
   "apk": "C:\\Users\\xub\\Desktop\\test\\imu-ble-validator\\build\\imu-ble-validator-debug.apk",
   "size": 82323,
-  "sha256": "0ed18a365c9170964e26d14cd2789eaae01e2c339fc364ea11b6776c61d70d62",
+  "sha256": "2ce0b782882128edc5bc7c10f9bf109a81e409f44468b51c5e00708336c46c1e",
   "compile_sdk": 34,
   "target_sdk": 34,
   "min_sdk": 26,
