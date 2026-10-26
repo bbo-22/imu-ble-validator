@@ -1,0 +1,3 @@
+same_target_attached=false connect_calls=0
+Exception in thread "main" java.lang.AssertionError: Target detached between DOWN/UP: click lost
+	at Repro.main(Repro.java:16)

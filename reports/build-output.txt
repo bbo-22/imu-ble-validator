@@ -1,0 +1,57 @@
+> D:\Android\SDK\build-tools\36.0.0\aapt2.exe link --manifest C:\Users\xub\Desktop\test\imu-ble-validator\AndroidManifest.xml -I D:\Android\SDK\platforms\android-34\android.jar --java C:\Users\xub\Desktop\test\imu-ble-validator\build\gen -o C:\Users\xub\Desktop\test\imu-ble-validator\build\base.apk
+> C:\Program Files\Eclipse Adoptium\jdk-21.0.12.101-hotspot\bin\javac.exe -encoding UTF-8 -source 8 -target 8 -bootclasspath D:\Android\SDK\build-tools\36.0.0\core-lambda-stubs.jar;D:\Android\SDK\platforms\android-34\android.jar -d C:\Users\xub\Desktop\test\imu-ble-validator\build\classes C:\Users\xub\Desktop\test\imu-ble-validator\src\com\imu\validator\FrameParser.java C:\Users\xub\Desktop\test\imu-ble-validator\src\com\imu\validator\LogProvider.java C:\Users\xub\Desktop\test\imu-ble-validator\src\com\imu\validator\MainActivity.java C:\Users\xub\Desktop\test\imu-ble-validator\src\com\imu\validator\ReadingState.java C:\Users\xub\Desktop\test\imu-ble-validator\src\com\imu\validator\SessionLog.java
+����: [options] Դֵ 8 �ѹ�ʱ������δ�����а���ɾ��
+����: [options] Ŀ��ֵ 8 �ѹ�ʱ������δ�����а���ɾ��
+����: [options] Ҫ�����й��ѹ�ʱѡ��ľ���, ��ʹ�� -Xlint:-options��
+ע: C:\Users\xub\Desktop\test\imu-ble-validator\src\com\imu\validator\MainActivity.javaʹ�û򸲸����ѹ�ʱ�� API��
+ע: �й���ϸ��Ϣ, ��ʹ�� -Xlint:deprecation ���±��롣
+3 ������
+> D:\Android\SDK\build-tools\36.0.0\d8.bat --min-api 26 --lib D:\Android\SDK\platforms\android-34\android.jar --output C:\Users\xub\Desktop\test\imu-ble-validator\build\dex C:\Users\xub\Desktop\test\imu-ble-validator\build\classes.jar
+> D:\Android\SDK\build-tools\36.0.0\zipalign.exe -f 4 C:\Users\xub\Desktop\test\imu-ble-validator\build\unsigned.apk C:\Users\xub\Desktop\test\imu-ble-validator\build\aligned.apk
+> D:\Android\SDK\build-tools\36.0.0\apksigner.bat sign --ks C:\Users\xub\Desktop\test\imu-ble-validator\debug.keystore --ks-key-alias androiddebugkey --ks-pass pass:android --key-pass pass:android --out C:\Users\xub\Desktop\test\imu-ble-validator\build\imu-ble-validator-debug.apk C:\Users\xub\Desktop\test\imu-ble-validator\build\aligned.apk
+> D:\Android\SDK\build-tools\36.0.0\apksigner.bat verify --verbose C:\Users\xub\Desktop\test\imu-ble-validator\build\imu-ble-validator-debug.apk
+Verifies
+Verified using v1 scheme (JAR signing): false
+Verified using v2 scheme (APK Signature Scheme v2): true
+Verified using v3 scheme (APK Signature Scheme v3): true
+Verified using v3.1 scheme (APK Signature Scheme v3.1): false
+Verified using v4 scheme (APK Signature Scheme v4): false
+Verified for SourceStamp: false
+Number of signers: 1
+> D:\Android\SDK\build-tools\36.0.0\aapt.exe dump badging C:\Users\xub\Desktop\test\imu-ble-validator\build\imu-ble-validator-debug.apk
+package: name='com.imu.validator' versionCode='1' versionName='1.0' platformBuildVersionName='14' platformBuildVersionCode='34' compileSdkVersion='34' compileSdkVersionCodename='14'
+sdkVersion:'26'
+targetSdkVersion:'34'
+uses-permission: name='android.permission.BLUETOOTH' maxSdkVersion='30'
+uses-permission: name='android.permission.BLUETOOTH_ADMIN' maxSdkVersion='30'
+uses-permission: name='android.permission.ACCESS_FINE_LOCATION' maxSdkVersion='30'
+uses-permission: name='android.permission.BLUETOOTH_SCAN'
+uses-permission: name='android.permission.BLUETOOTH_CONNECT'
+application: label='' icon=''
+application-debuggable
+launchable-activity: name='com.imu.validator.MainActivity'  label='' icon=''
+feature-group: label=''
+  uses-feature: name='android.hardware.bluetooth_le'
+  uses-feature: name='android.hardware.bluetooth'
+  uses-implied-feature: name='android.hardware.bluetooth' reason='requested android.permission.BLUETOOTH permission, requested android.permission.BLUETOOTH_ADMIN permission, and targetSdkVersion > 4'
+  uses-feature: name='android.hardware.faketouch'
+  uses-implied-feature: name='android.hardware.faketouch' reason='default feature for all apps'
+  uses-feature: name='android.hardware.location'
+  uses-implied-feature: name='android.hardware.location' reason='requested android.permission.ACCESS_FINE_LOCATION permission'
+  uses-feature: name='android.hardware.screen.portrait'
+  uses-implied-feature: name='android.hardware.screen.portrait' reason='one or more activities have specified a portrait orientation'
+main
+supports-screens: 'small' 'normal' 'large' 'xlarge'
+supports-any-density: 'true'
+locales:
+densities:
+{
+  "apk": "C:\\Users\\xub\\Desktop\\test\\imu-ble-validator\\build\\imu-ble-validator-debug.apk",
+  "size": 45459,
+  "sha256": "6e00bb14f8b8154b6750f39ded1125fcbe12df3497bd1f50a1e44340cd1d1a49",
+  "compile_sdk": 34,
+  "target_sdk": 34,
+  "min_sdk": 26,
+  "build_tools": "36.0.0",
+  "jdk": "C:\\Program Files\\Eclipse Adoptium\\jdk-21.0.12.101-hotspot"
+}
