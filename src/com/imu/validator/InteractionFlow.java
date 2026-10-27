@@ -12,6 +12,9 @@ public final class InteractionFlow {
     public boolean scanning;
     public long attempt, scanToken, scanDeadline;
     public InteractionFlow(Port port) { this.port = port; }
+    public static boolean acceptsCallback(Object current,Object incoming,long currentAttempt,long incomingAttempt,boolean active) {
+        return current==incoming&&currentAttempt==incomingAttempt&&active;
+    }
     public boolean busy() {
         return !(phase.equals("disconnected") || phase.equals("failed") || phase.equals("cancelled"));
     }

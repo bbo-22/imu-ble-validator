@@ -1,0 +1,19 @@
+{
+  "baseline": "10434a6",
+  "moved_procedures": {
+    "void startScan()": true,
+    "void stopScanner(": true,
+    "void arm(": true,
+    "void beginGatt(": true,
+    "BluetoothGattCallback callbacks(": true,
+    "void disconnect(": true,
+    "void fail(": true,
+    "void summary()": true
+  },
+  "allowed_adapters": [
+    "application Context receiver",
+    "notice callback",
+    "scan UI reset callback"
+  ],
+  "callback_guard": "same identity + same attempt + active; truth-table tested"
+}

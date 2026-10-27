@@ -1,11 +1,32 @@
 > D:\Android\SDK\build-tools\36.0.0\aapt2.exe link --manifest C:\Users\xub\Desktop\test\imu-ble-validator\AndroidManifest.xml -I D:\Android\SDK\platforms\android-34\android.jar --java C:\Users\xub\Desktop\test\imu-ble-validator\build\gen -o C:\Users\xub\Desktop\test\imu-ble-validator\build\base.apk
-> C:\Program Files\Eclipse Adoptium\jdk-21.0.12.101-hotspot\bin\javac.exe -encoding UTF-8 -source 8 -target 8 -bootclasspath D:\Android\SDK\build-tools\36.0.0\core-lambda-stubs.jar;D:\Android\SDK\platforms\android-34\android.jar -d C:\Users\xub\Desktop\test\imu-ble-validator\build\classes C:\Users\xub\Desktop\test\imu-ble-validator\src\com\imu\validator\DiagnosticSample.java C:\Users\xub\Desktop\test\imu-ble-validator\src\com\imu\validator\FrameParser.java C:\Users\xub\Desktop\test\imu-ble-validator\src\com\imu\validator\InteractionFlow.java C:\Users\xub\Desktop\test\imu-ble-validator\src\com\imu\validator\LogProvider.java C:\Users\xub\Desktop\test\imu-ble-validator\src\com\imu\validator\MainActivity.java C:\Users\xub\Desktop\test\imu-ble-validator\src\com\imu\validator\ReadingState.java C:\Users\xub\Desktop\test\imu-ble-validator\src\com\imu\validator\SessionFiles.java C:\Users\xub\Desktop\test\imu-ble-validator\src\com\imu\validator\SessionLog.java C:\Users\xub\Desktop\test\imu-ble-validator\src\com\imu\validator\StableRows.java
+> C:\Program Files\Eclipse Adoptium\jdk-21.0.12.101-hotspot\bin\javac.exe -encoding UTF-8 -source 8 -target 8 -bootclasspath D:\Android\SDK\build-tools\36.0.0\core-lambda-stubs.jar;D:\Android\SDK\platforms\android-34\android.jar -d C:\Users\xub\Desktop\test\imu-ble-validator\build\classes C:\Users\xub\Desktop\test\imu-ble-validator\src\com\imu\validator\BleImuManager.java C:\Users\xub\Desktop\test\imu-ble-validator\src\com\imu\validator\DiagnosticSample.java C:\Users\xub\Desktop\test\imu-ble-validator\src\com\imu\validator\FrameParser.java C:\Users\xub\Desktop\test\imu-ble-validator\src\com\imu\validator\InteractionFlow.java C:\Users\xub\Desktop\test\imu-ble-validator\src\com\imu\validator\LogProvider.java C:\Users\xub\Desktop\test\imu-ble-validator\src\com\imu\validator\MainActivity.java C:\Users\xub\Desktop\test\imu-ble-validator\src\com\imu\validator\ReadingState.java C:\Users\xub\Desktop\test\imu-ble-validator\src\com\imu\validator\SessionFiles.java C:\Users\xub\Desktop\test\imu-ble-validator\src\com\imu\validator\SessionLog.java C:\Users\xub\Desktop\test\imu-ble-validator\src\com\imu\validator\StableRows.java C:\Users\xub\Desktop\test\imu-ble-validator\src\com\imu\validator\YawComparison.java
 ����: [options] Դֵ 8 �ѹ�ʱ������δ�����а���ɾ��
 ����: [options] Ŀ��ֵ 8 �ѹ�ʱ������δ�����а���ɾ��
 ����: [options] Ҫ�����й��ѹ�ʱѡ��ľ���, ��ʹ�� -Xlint:-options��
-ע: C:\Users\xub\Desktop\test\imu-ble-validator\src\com\imu\validator\MainActivity.javaʹ�û򸲸����ѹ�ʱ�� API��
+ע: C:\Users\xub\Desktop\test\imu-ble-validator\src\com\imu\validator\BleImuManager.javaʹ�û򸲸����ѹ�ʱ�� API��
 ע: �й���ϸ��Ϣ, ��ʹ�� -Xlint:deprecation ���±��롣
 3 ������
+> C:\Program Files\Eclipse Adoptium\jdk-21.0.12.101-hotspot\bin\javac.exe -encoding UTF-8 -source 8 -target 8 -bootclasspath D:\Android\SDK\build-tools\36.0.0\core-lambda-stubs.jar;D:\Android\SDK\platforms\android-34\android.jar -classpath C:\Users\xub\Desktop\test\imu-ble-validator\build\imu-ble-module.jar -d C:\Users\xub\Desktop\test\imu-ble-validator\build\example-check C:\Users\xub\Desktop\test\imu-ble-validator\examples\ReceiverExample.java
+����: [options] Դֵ 8 �ѹ�ʱ������δ�����а���ɾ��
+����: [options] Ŀ��ֵ 8 �ѹ�ʱ������δ�����а���ɾ��
+����: [options] Ҫ�����й��ѹ�ʱѡ��ľ���, ��ʹ�� -Xlint:-options��
+3 ������
+������ (21.0.12.1) �г����쳣��������� Bug Database (https://bugs.java.com) ��û���ҵ��йظô���� Java ������ Bug����ͨ�� Java Bug ����ҳ (https://bugreport.java.com) �ύ Java ������ Bug�����ڱ����и������ĳ������������Ϣ�Լ����ݵ� Java �������Ĳ�����лл��
+java.nio.file.AccessDeniedException: C:\Users\xub\Desktop\test\imu-ble-validator\build\imu-ble-module.jar
+	at java.base/sun.nio.fs.WindowsException.translateToIOException(WindowsException.java:89)
+	at java.base/sun.nio.fs.WindowsException.rethrowAsIOException(WindowsException.java:96)
+	at java.base/sun.nio.fs.WindowsLinkSupport.getRealPath(WindowsLinkSupport.java:288)
+	at java.base/sun.nio.fs.WindowsPath.toRealPath(WindowsPath.java:947)
+	at java.base/sun.nio.fs.WindowsPath.toRealPath(WindowsPath.java:42)
+	at jdk.zipfs/jdk.nio.zipfs.ZipFileSystemProvider.lambda$removeFileSystem$0(ZipFileSystemProvider.java:324)
+	at java.base/java.security.AccessController.doPrivileged(AccessController.java:571)
+	at jdk.zipfs/jdk.nio.zipfs.ZipFileSystemProvider.removeFileSystem(ZipFileSystemProvider.java:326)
+	at jdk.zipfs/jdk.nio.zipfs.ZipFileSystem.close(ZipFileSystem.java:526)
+	at jdk.compiler/com.sun.tools.javac.file.JavacFileManager$ArchiveContainer.close(JavacFileManager.java:657)
+	at jdk.compiler/com.sun.tools.javac.file.JavacFileManager.close(JavacFileManager.java:735)
+	at jdk.compiler/com.sun.tools.javac.main.Main.compile(Main.java:182)
+	at jdk.compiler/com.sun.tools.javac.Main.compile(Main.java:64)
+	at jdk.compiler/com.sun.tools.javac.Main.main(Main.java:50)
 > D:\Android\SDK\build-tools\36.0.0\d8.bat --min-api 26 --lib D:\Android\SDK\platforms\android-34\android.jar --output C:\Users\xub\Desktop\test\imu-ble-validator\build\dex C:\Users\xub\Desktop\test\imu-ble-validator\build\classes.jar
 > D:\Android\SDK\build-tools\36.0.0\zipalign.exe -f 4 C:\Users\xub\Desktop\test\imu-ble-validator\build\unsigned.apk C:\Users\xub\Desktop\test\imu-ble-validator\build\aligned.apk
 > D:\Android\SDK\build-tools\36.0.0\apksigner.bat sign --ks C:\Users\xub\Desktop\test\imu-ble-validator\debug.keystore --ks-key-alias androiddebugkey --ks-pass pass:android --key-pass pass:android --out C:\Users\xub\Desktop\test\imu-ble-validator\build\imu-ble-validator-debug.apk C:\Users\xub\Desktop\test\imu-ble-validator\build\aligned.apk
@@ -19,7 +40,7 @@ Verified using v4 scheme (APK Signature Scheme v4): false
 Verified for SourceStamp: false
 Number of signers: 1
 > D:\Android\SDK\build-tools\36.0.0\aapt.exe dump badging C:\Users\xub\Desktop\test\imu-ble-validator\build\imu-ble-validator-debug.apk
-package: name='com.imu.validator' versionCode='3' versionName='1.2.0' platformBuildVersionName='14' platformBuildVersionCode='34' compileSdkVersion='34' compileSdkVersionCodename='14'
+package: name='com.imu.validator' versionCode='4' versionName='1.3.0' platformBuildVersionName='14' platformBuildVersionCode='34' compileSdkVersion='34' compileSdkVersionCodename='14'
 sdkVersion:'26'
 targetSdkVersion:'34'
 uses-permission: name='android.permission.BLUETOOTH' maxSdkVersion='30'
@@ -47,8 +68,8 @@ locales:
 densities:
 {
   "apk": "C:\\Users\\xub\\Desktop\\test\\imu-ble-validator\\build\\imu-ble-validator-debug.apk",
-  "size": 82323,
-  "sha256": "2ce0b782882128edc5bc7c10f9bf109a81e409f44468b51c5e00708336c46c1e",
+  "size": 90515,
+  "sha256": "a19b8fd2d05863e9c651c028aaa314eda20c1cd1eb66930d1f172cba2a6bfc9e",
   "compile_sdk": 34,
   "target_sdk": 34,
   "min_sdk": 26,

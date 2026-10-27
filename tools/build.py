@@ -17,6 +17,15 @@ def main():
     run([jdk/'bin/javac.exe','-encoding','UTF-8','-source','8','-target','8','-bootclasspath',str(bt/'core-lambda-stubs.jar')+os.pathsep+str(android),'-d',out/'classes',*sources])
     with zipfile.ZipFile(out/'classes.jar','w') as z:
         for f in (out/'classes').rglob('*.class'):z.write(f,f.relative_to(out/'classes').as_posix())
+    core={'FrameParser','ReadingState','DiagnosticSample','YawComparison','InteractionFlow'}
+    for name,types in [('imu-protocol-core.jar',core),('imu-ble-module.jar',core|{'BleImuManager','SessionLog','SessionFiles'})]:
+        with zipfile.ZipFile(out/name,'w') as z:
+            for f in (out/'classes/com/imu/validator').glob('*.class'):
+                if f.stem.split('$')[0] in types:z.write(f,f.relative_to(out/'classes').as_posix())
+    example=ROOT/'examples/ReceiverExample.java'
+    if example.exists():
+        (out/'example-check').mkdir(exist_ok=True)
+        run([jdk/'bin/javac.exe','-encoding','UTF-8','-source','8','-target','8','-bootclasspath',str(bt/'core-lambda-stubs.jar')+os.pathsep+str(android),'-classpath',out/'imu-ble-module.jar','-d',out/'example-check',example])
     run([bt/'d8.bat','--min-api','26','--lib',android,'--output',out/'dex',out/'classes.jar'])
     shutil.copyfile(out/'base.apk',out/'unsigned.apk')
     with zipfile.ZipFile(out/'unsigned.apk','a') as z:z.write(out/'dex/classes.dex','classes.dex')

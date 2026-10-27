@@ -8,7 +8,7 @@ public class SessionLogTest {
   SessionLog.IO.execute(()->{held.countDown();try{release.await();}catch(InterruptedException e){throw new RuntimeException(e);}});held.await();
   // Actual event path must return while disk executor is blocked.
   for(int i=0;i<1000;i++)log.event(1,"notification","valid",true,"index",i);
-  FrameParser.Frame f=new FrameParser.Frame();f.angle=1;f.angle2=2;f.angle3=3;
+  FrameParser.Frame f=new FrameParser.Frame();f.valid=true;f.angle=1;f.angle2=2;f.angle3=3;
   DiagnosticSample.Context context=new DiagnosticSample.Context(new DiagnosticSample(f,12300,2000000000L,1,log.sessionId),1,2000,true,true,true);
   log.eventAt(1,"marker",12345,2100000000L,context.marker("实验A","到位静止",12345,2100000000L));
   CountDownLatch done=new CountDownLatch(1);File[] snapshot={null};String[] error={""};

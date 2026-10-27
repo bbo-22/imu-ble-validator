@@ -1,0 +1,317 @@
+[
+  {
+    "file": "C:\\Users\\xub\\Documents\\WXWork\\1688854895866843\\Cache\\File\\2026-10\\session-000003_20261026-191023_snapshot-5879808468107535175.jsonl",
+    "filename": "session-000003_20261026-191023_snapshot-5879808468107535175.jsonl",
+    "sha256": "3ec1551c19bccbd74dd7bdf9541aa01fdc3ff2da01e0a7886f8580fd0033fcff",
+    "size": 1203442,
+    "event_counts": {
+      "session_start": 1,
+      "scan_requested": 1,
+      "scan_started": 1,
+      "ui_state": 14,
+      "device_row_click": 2,
+      "device_selected": 2,
+      "scan_stopped": 1,
+      "connect_requested": 2,
+      "connect_gatt_result": 2,
+      "connection_state_changed": 2,
+      "service_discovery_started": 2,
+      "service_discovery_completed": 2,
+      "service": 8,
+      "characteristic": 16,
+      "descriptor": 6,
+      "mtu_requested": 2,
+      "mtu_changed": 2,
+      "local_notification_enable": 2,
+      "subscription_started": 2,
+      "subscription_completed": 2,
+      "notification": 3234,
+      "first_valid_notification": 2,
+      "disconnect_requested": 1,
+      "disconnect_completed": 1,
+      "session_summary": 3,
+      "export_requested": 1
+    },
+    "app_versions": [
+      "1.1.0"
+    ],
+    "connection_requests": [
+      {
+        "line": 8,
+        "attempt_id": 1,
+        "wall_time_ms": 1793013027129
+      },
+      {
+        "line": 3253,
+        "attempt_id": 2,
+        "wall_time_ms": 1793013198434
+      }
+    ],
+    "attempts": [
+      {
+        "session_id": "session-000003_20261026-191023",
+        "attempt_id": 1,
+        "valid_notifications": 3207,
+        "first": [
+          {
+            "line": 38,
+            "wall_time_ms": 1793013032545,
+            "monotonic_ns": 1412567454650714,
+            "raw_hex": "681d00847f1100190000000400feff18fc0500f3ff0500840a6410e20443",
+            "yaw_bytes_le": "00 00",
+            "yaw_raw": 0,
+            "yaw_deg": 0.0,
+            "logged_values": {},
+            "mismatches": {}
+          },
+          {
+            "line": 41,
+            "wall_time_ms": 1793013032592,
+            "monotonic_ns": 1412567502206406,
+            "raw_hex": "681d00847f10001a0000000600ffff15fc00000e00f9ff840a6410140580",
+            "yaw_bytes_le": "00 00",
+            "yaw_raw": 0,
+            "yaw_deg": 0.0,
+            "logged_values": {},
+            "mismatches": {}
+          },
+          {
+            "line": 42,
+            "wall_time_ms": 1793013032642,
+            "monotonic_ns": 1412567552082098,
+            "raw_hex": "681d00847f10001a0000000300fdff1afcf2ff49000100840a64104605e7",
+            "yaw_bytes_le": "00 00",
+            "yaw_raw": 0,
+            "yaw_deg": 0.0,
+            "logged_values": {},
+            "mismatches": {}
+          },
+          {
+            "line": 43,
+            "wall_time_ms": 1793013032690,
+            "monotonic_ns": 1412567600268175,
+            "raw_hex": "681d00847f10001b0000000700feff15fc0700e2fffeff850a64107805c5",
+            "yaw_bytes_le": "00 00",
+            "yaw_raw": 0,
+            "yaw_deg": 0.0,
+            "logged_values": {},
+            "mismatches": {}
+          },
+          {
+            "line": 44,
+            "wall_time_ms": 1793013032741,
+            "monotonic_ns": 1412567650805714,
+            "raw_hex": "681d00847f10001b0000000800feff15fc0800f5ff0b00850a6410aa051a",
+            "yaw_bytes_le": "00 00",
+            "yaw_raw": 0,
+            "yaw_deg": 0.0,
+            "logged_values": {},
+            "mismatches": {}
+          }
+        ],
+        "first_yaw_near_zero": true,
+        "logged_yaw_comparisons": 0,
+        "logged_yaw_mismatch_rows": [],
+        "all_yaw_range": [
+          -6.15,
+          9.04
+        ]
+      },
+      {
+        "session_id": "session-000003_20261026-191023",
+        "attempt_id": 2,
+        "valid_notifications": 27,
+        "first": [
+          {
+            "line": 3283,
+            "wall_time_ms": 1793013203370,
+            "monotonic_ns": 1412738279619262,
+            "raw_hex": "681d00847f1500040000000200fdff18fcffff0d000500a80a6410e20467",
+            "yaw_bytes_le": "00 00",
+            "yaw_raw": 0,
+            "yaw_deg": 0.0,
+            "logged_values": {},
+            "mismatches": {}
+          },
+          {
+            "line": 3286,
+            "wall_time_ms": 1793013203418,
+            "monotonic_ns": 1412738328031031,
+            "raw_hex": "681d00847f1500040000000100fcff18fc06000300feffa80a641014058e",
+            "yaw_bytes_le": "00 00",
+            "yaw_raw": 0,
+            "yaw_deg": 0.0,
+            "logged_values": {},
+            "mismatches": {}
+          },
+          {
+            "line": 3287,
+            "wall_time_ms": 1793013203472,
+            "monotonic_ns": 1412738381392801,
+            "raw_hex": "681d00847f1500040000000100fbff18fc05000200faffa80a64104605b9",
+            "yaw_bytes_le": "00 00",
+            "yaw_raw": 0,
+            "yaw_deg": 0.0,
+            "logged_values": {},
+            "mismatches": {}
+          },
+          {
+            "line": 3288,
+            "wall_time_ms": 1793013203563,
+            "monotonic_ns": 1412738473115647,
+            "raw_hex": "681d00847f1500040000000000fdff17fcfeff0000fbffa80a64107805e2",
+            "yaw_bytes_le": "00 00",
+            "yaw_raw": 0,
+            "yaw_deg": 0.0,
+            "logged_values": {},
+            "mismatches": {}
+          },
+          {
+            "line": 3289,
+            "wall_time_ms": 1793013203612,
+            "monotonic_ns": 1412738521435878,
+            "raw_hex": "681d00847f1500040000000000fdff16fcf7ff0b000000a90a6410aa051e",
+            "yaw_bytes_le": "00 00",
+            "yaw_raw": 0,
+            "yaw_deg": 0.0,
+            "logged_values": {},
+            "mismatches": {}
+          }
+        ],
+        "first_yaw_near_zero": true,
+        "logged_yaw_comparisons": 0,
+        "logged_yaw_mismatch_rows": [],
+        "all_yaw_range": [
+          0.0,
+          0.0
+        ]
+      }
+    ],
+    "issues": []
+  },
+  {
+    "file": "C:\\Users\\xub\\Documents\\WXWork\\1688854895866843\\Cache\\File\\2026-10\\session-000006_20261026-210850_snapshot-8252063970555642328.jsonl",
+    "filename": "session-000006_20261026-210850_snapshot-8252063970555642328.jsonl",
+    "sha256": "c7eb65d5b6968fb9d387d9b6212f2bb000bd914610ffd8a68b912087c0d9efe9",
+    "size": 3489757,
+    "event_counts": {
+      "session_start": 1,
+      "scan_requested": 1,
+      "scan_started": 1,
+      "ui_state": 7,
+      "device_row_click": 1,
+      "device_selected": 1,
+      "scan_stopped": 1,
+      "connect_requested": 1,
+      "connect_gatt_result": 1,
+      "connection_state_changed": 1,
+      "service_discovery_started": 1,
+      "service_discovery_completed": 1,
+      "service": 4,
+      "characteristic": 8,
+      "descriptor": 3,
+      "mtu_requested": 1,
+      "mtu_changed": 1,
+      "local_notification_enable": 1,
+      "subscription_started": 1,
+      "subscription_completed": 1,
+      "notification": 4998,
+      "first_valid_notification": 1,
+      "marker": 11,
+      "session_summary": 2,
+      "export_requested": 1
+    },
+    "app_versions": [
+      "1.2.0"
+    ],
+    "connection_requests": [
+      {
+        "line": 8,
+        "attempt_id": 1,
+        "wall_time_ms": 1793020141812
+      }
+    ],
+    "attempts": [
+      {
+        "session_id": "session-000006_20261026-210850",
+        "attempt_id": 1,
+        "valid_notifications": 4998,
+        "first": [
+          {
+            "line": 38,
+            "wall_time_ms": 1793020144772,
+            "monotonic_ns": 1419679682213907,
+            "raw_hex": "681d00847f1200260000000700feff17fc000005000800cc0a6410e204ac",
+            "yaw_bytes_le": "00 00",
+            "yaw_raw": 0,
+            "yaw_deg": 0.0,
+            "logged_values": {
+              "angle3_deg_candidate": 0
+            },
+            "mismatches": {}
+          },
+          {
+            "line": 41,
+            "wall_time_ms": 1793020144816,
+            "monotonic_ns": 1419679725896291,
+            "raw_hex": "681d00847f1200260000000700fdff17fc0400feff0600cc0a64101405d8",
+            "yaw_bytes_le": "00 00",
+            "yaw_raw": 0,
+            "yaw_deg": 0.0,
+            "logged_values": {
+              "angle3_deg_candidate": 0
+            },
+            "mismatches": {}
+          },
+          {
+            "line": 42,
+            "wall_time_ms": 1793020144865,
+            "monotonic_ns": 1419679774362214,
+            "raw_hex": "681d00847f1200270000000600feff17fcffff02000200cd0a6410460507",
+            "yaw_bytes_le": "00 00",
+            "yaw_raw": 0,
+            "yaw_deg": 0.0,
+            "logged_values": {
+              "angle3_deg_candidate": 0
+            },
+            "mismatches": {}
+          },
+          {
+            "line": 43,
+            "wall_time_ms": 1793020144914,
+            "monotonic_ns": 1419679823624368,
+            "raw_hex": "681d00847f1200270000000500feff17fcf4ff0700f6ffcd0a6410780525",
+            "yaw_bytes_le": "00 00",
+            "yaw_raw": 0,
+            "yaw_deg": 0.0,
+            "logged_values": {
+              "angle3_deg_candidate": 0
+            },
+            "mismatches": {}
+          },
+          {
+            "line": 44,
+            "wall_time_ms": 1793020145012,
+            "monotonic_ns": 1419679921301291,
+            "raw_hex": "681d00847f1200270000000700fdff19fcf3ff0d00f9ffcd0a6410aa0562",
+            "yaw_bytes_le": "00 00",
+            "yaw_raw": 0,
+            "yaw_deg": 0.0,
+            "logged_values": {
+              "angle3_deg_candidate": 0
+            },
+            "mismatches": {}
+          }
+        ],
+        "first_yaw_near_zero": true,
+        "logged_yaw_comparisons": 4998,
+        "logged_yaw_mismatch_rows": [],
+        "all_yaw_range": [
+          -179.98,
+          179.92
+        ]
+      }
+    ],
+    "issues": []
+  }
+]
