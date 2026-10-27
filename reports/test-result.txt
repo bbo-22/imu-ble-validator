@@ -18,7 +18,7 @@ test_short_interval_trim_has_no_negative_gap (test_summary.SummaryTest.test_shor
 test_wrap (test_summary.SummaryTest.test_wrap) ... ok
 
 ----------------------------------------------------------------------
-Ran 8 tests in 0.009s
+Ran 8 tests in 0.008s
 
 OK
 
