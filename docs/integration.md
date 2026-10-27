@@ -1,5 +1,7 @@
 # 复用与接入说明（1.3.0）
 
+1.4增量：FrameParser.Frame与DiagnosticSample增加Integer batteryRaw/batteryPercent、boolean batteryFieldValid、String batteryInvalidReason。映射为ATT值byte25暂定百分比，不是厂商确认；全帧验证通过后0–100才有百分比，101–255仅电量字段无效。短帧raw=null。百分比有效不代表样本实时；UI使用DiagnosticSample.batteryDisplay(context,nowNs)，该方法沿用全部连接/超时/会话隔离条件，不直接展示历史样本。无效帧不增加有效电量。没有更改BLE流程或Yaw边界。
+
 ## 三个边界与产物
 
 1. **协议解析：FrameParser**（纯Java）。输入单条通知bytes，输出长度、hex、校验结果/原因、raw整数与Roll/Pitch/Yaw（及兼容angle字段）。没有Activity、BLE、清零、安装补偿或机械计算。Python工具仍复用原frame.py，只添加同值别名。

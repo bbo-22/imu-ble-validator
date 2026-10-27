@@ -10,6 +10,7 @@ public class ParserTest {
    check(f.rollRaw==Integer.parseInt(a[2])&&Math.abs(f.rollDeg-Double.parseDouble(a[4]))<1e-10,"roll alias matches old vectors");
    check(f.pitchRaw==Integer.parseInt(a[5])&&Math.abs(f.pitchDeg-Double.parseDouble(a[10]))<1e-10,"pitch alias matches old vectors");
    check(f.yawRaw==Integer.parseInt(a[6])&&Math.abs(f.yawDeg-Double.parseDouble(a[11]))<1e-10,"yaw raw, no initial-value subtraction");
+   check(f.batteryRaw==100&&Integer.valueOf(100).equals(f.batteryPercent)&&f.batteryFieldValid&&f.batteryInvalidReason.isEmpty(),"real battery byte is 100, provisional meaning");
    if(file.equals(a[0])&&previous>f.counter){check(FrameParser.delta(previous,f.counter)==50,"wrap delta");wraps++;}file=a[0];previous=f.counter;if(f.angleRaw<0)neg++;if(f.angleRaw>0)pos++;n++;
   }
   check(n==17151,"all captures");check(neg>0&&pos>0&&wraps==11,"sign and wraps");

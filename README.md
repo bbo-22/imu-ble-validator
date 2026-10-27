@@ -1,6 +1,14 @@
-# IMU 接收验证 v1.3.0
+# IMU 接收验证 v1.4.0
 
-独立Java原生Android APP，包名`com.imu.validator`，versionCode=4；页面标题显示v1.3.0。minSdk26/targetSdk34，支持Android10。连续接收、手动重连、IMU断电及手机蓝牙关闭四项均为**用户验收通过**，不是本轮自动执行。以用户当前10434a6代码为基线，保留通信逻辑，提取为复用管理器；不修改业务项目、不自动连接设备。
+独立Java原生Android APP，包名`com.imu.validator`，versionCode=5；页面标题显示v1.4.0。minSdk26/targetSdk34，支持Android10。连续接收、手动重连、IMU断电及手机蓝牙关闭四项均为**用户验收通过**，不是本轮自动执行。1.4以1330e55的1.3.0为基线，只增加暂定电量解析、显示、日志和兼容读取，不改变BLE通信、姿态或Yaw会话边界，不修改业务项目。
+
+## 暂定电量映射（1.4）
+
+ATT通知**数据值**偏移25（第26字节）按`value[25] & 0xFF`读取，不是HCI偏移。整帧长度、格式、校验有效且raw为0–100时输出百分比；101–255保留raw，百分比null，原因outside_candidate_range_0_100，仅电量无效，姿态仍可用。整帧无效时百分比null、原因为frame_invalid；非法长度的raw也为null，避免越界或默认0。
+
+主界面新增电量，旁注明“暂定字段，待非满电样本验证”。无数据、断开、超时、跨连接或最近帧无效显示`电量：--`；合法帧的超范围值显示`电量：未知`及原始值和原因。使用原400ms刷新和同一个DiagnosticSample.Context，不保留看似有效的历史电量，不新增BLE请求、不使用手机电池。
+
+三份完整HCI共17151帧的byte25均100；用户观察原APP显示100，**仅支持暂定映射，不是厂商确认**。目前无非100对照，不推断充电、剩余时间或报警。未来原APP自然显示非100时，只需记录值和时间，对照同一时段完整通知的byte25，无需专门耗尽电池。测试中重算校验的非100帧均为合成数据，不计入实测证据。见[电量验证记录](reports/battery-v1.4.md)。
 
 ## 本轮固化与复用（1.3）
 
@@ -23,6 +31,8 @@ python imu-ble-validator/tools/build.py
 使用现有JDK21、SDK34及Build Tools36.0.0，无Gradle/第三方Android框架依赖。构建脚本只运行本机SDK工具，不操作设备。调试签名继续使用原有debug.keystore，包名相同。
 
 APK：`C:\Users\xub\Desktop\test\imu-ble-validator\build\imu-ble-validator-debug.apk`
+
+同时生成`build/imu-ble-validator-1.4.0-debug.apk`，与固定文件字节一致；版本从manifest读取，大小和SHA-256见reports/build-result.json。
 
 实际构建结果、大小、SHA-256及签名输出见`reports/build-result.json`和`reports/build-output.txt`。用户人工更新命令（保留应用数据及旧日志；不要先卸载）：
 
@@ -47,6 +57,10 @@ APK：`C:\Users\xub\Desktop\test\imu-ble-validator\build\imu-ble-validator-debug
 5. 完成后导出最近会话。当前会话先生成一致快照，再打开系统分享；不因UI限频丢弃通知。
 
 ## JSONL schema 2 与离线汇总
+
+1.4以可选字段扩展schema 2：通知含`battery_raw`（无值null）、`battery_percent`（无效null）、`battery_field_valid`及`battery_invalid_reason`。字段合理不等于当前连接的数据实时有效；实时使用仍须检查Context。旧`unknown_23_26_hex`保持不变，是历史原始片段，其中偏移25现有暂定电量解释，其余字节仍未知。
+
+summarize_session.py增加按session/attempt分组的battery_summary；新旧日志优先复用Python解析器从raw_hex恢复电量，无原始帧且缺新字段时明确battery_fields_missing，不默认0/100；完整新字段可校验后读取。输出是历史字段统计，不宣称断开后的数据仍实时。旧文件不被改写。HCI新导出保存在`imu-protocol-analysis/exports/battery-v1.4/`，不覆盖原导出。
 
 沿用JSONL事件、session_id、attempt_id、墙钟/单调时间和旧angle1字段，每行新增schema_version=2。notification保留angle1/angle2/angle3兼容字段及angle1_raw/angle2_raw/angle3_raw、angle1_deg_candidate/angle2_deg_candidate/angle3_deg_candidate、accelA/B/C_raw与accelA/B/C_g_candidate、accel_norm_g_candidate及length；新增roll_deg/pitch_deg/yaw_deg同值别名；不向设备写任何校准或清零命令。
 
@@ -85,7 +99,7 @@ python imu-ble-validator/tools/summarize_session.py imu-ble-validator/reports/ex
 
 ## 人工验收
 
-1. 更新后确认标题为 **v1.3.0**。开启手机蓝牙与位置服务；Android10授权使用期间精确定位后再点扫描。Android12+请求附近设备权限。
+1. 更新后确认标题为 **v1.4.0**。开启手机蓝牙与位置服务；Android10授权使用期间精确定位后再点扫描。Android12+请求附近设备权限。
 2. 扫描倒计时运行时，点`BDA446T-26040035`。应立即看到“正在连接”，扫描停止，按钮变为取消连接。
 3. 应继续看到服务发现→MTU→CCCD确认→等待首个有效帧→正在接收；若失败，应有明确原因/超时，约15秒连接超时后可重试。服务发现12秒、MTU/CCCD/首有效帧各10秒。没有收到首有效帧不能显示为接收成功。
 4. 连接期间再次点设备应提示已有连接任务；取消后可重试。重扫会废止旧扫描计时器，主动停止后保留可点击结果。失败后离开/返回页面不应抹掉失败说明。
@@ -111,7 +125,7 @@ python imu-ble-validator/tools/summarize_session.py imu-ble-validator/reports/ex
 
 ## 离线验证与边界
 
-`tools/test.py`：全部17151帧的六个字段Java/Python移植交叉核验（308742条断言）；高频100000次扫描更新行身份、点击到可注入BLE端口、重复拒绝、旧scan token、旧attempt、取消/失败/超时后重试；日志序号/防覆盖/回拨/历史兼容；实际SessionLog在磁盘阻塞替身下无同步阻塞，2000条通知加1条marker无丢失，快照边界1000条通知加marker，精确保留点击时钟。新增诊断与离线分段/圆周统计测试。测试用Android/JSON最小替身，不打包进APK。
+`tools/test.py`：全部17151帧的六个字段Java/Python移植交叉核验（325893条断言）；高频100000次扫描更新行身份、点击到可注入BLE端口、重复拒绝、旧scan token、旧attempt、取消/失败/超时后重试；日志序号/防覆盖/回拨/历史兼容；实际SessionLog在磁盘阻塞替身下无同步阻塞，2000条通知加1条marker无丢失，快照边界1000条通知加marker，精确保留点击时钟。新增诊断与离线分段/圆周统计测试。测试用Android/JSON最小替身，不打包进APK。
 
 根因证据及未确认项见`reports/diagnosis-v1.1.md`。`tools/repro_click.py`刻意重放冻结1.0方法：默认应失败（connect_calls=0），加`--no-refresh`控制组通过（connect_calls=1）。它是诊断模型，未替代Android真机触摸分发或厂商BLE栈测试。最终回归走新代码公共边界。
 

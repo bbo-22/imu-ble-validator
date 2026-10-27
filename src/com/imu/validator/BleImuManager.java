@@ -268,6 +268,8 @@ public final class BleImuManager implements AutoCloseable {
             if(log!=null)log.eventAt(attempt,"notification",wall,mono,"raw_hex",f.hex,"valid",f.valid,"error",f.error,
                     "angle1_raw",bytes.length==30?f.angleRaw:org.json.JSONObject.NULL,"angle1",bytes.length==30?f.angle:org.json.JSONObject.NULL,
                     "counter_uint16",bytes.length==30?f.counter:org.json.JSONObject.NULL,"checksum_ok",f.checksumOk,"subscribed",reading.subscribed,"unknown_23_26_hex",f.unknown23to26,
+                    "battery_raw",f.batteryRaw,"battery_percent",f.batteryPercent,
+                    "battery_field_valid",f.batteryFieldValid,"battery_invalid_reason",f.batteryInvalidReason,
                     "length",f.length,"angle2_raw",bytes.length==30?f.angle2Raw:null,"angle3_raw",bytes.length==30?f.angle3Raw:null,
                     "angle2",bytes.length==30?f.angle2:null,"angle3",bytes.length==30?f.angle3:null,
                     "roll_deg",bytes.length==30?f.rollDeg:null,"pitch_deg",bytes.length==30?f.pitchDeg:null,"yaw_deg",bytes.length==30?f.yawDeg:null,

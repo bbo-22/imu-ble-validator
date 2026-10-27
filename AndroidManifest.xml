@@ -1,4 +1,4 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.imu.validator" android:versionCode="4" android:versionName="1.3.0">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.imu.validator" android:versionCode="5" android:versionName="1.4.0">
  <uses-sdk android:minSdkVersion="26" android:targetSdkVersion="34"/>
  <uses-feature android:name="android.hardware.bluetooth_le" android:required="true"/>
  <uses-permission android:name="android.permission.BLUETOOTH" android:maxSdkVersion="30"/>

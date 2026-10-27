@@ -11,6 +11,9 @@ public final class DiagnosticSample {
     public final String rawHex,error;
     public final boolean protocolValid;
     public final int rollRaw,pitchRaw,yawRaw;
+    public final Integer batteryRaw,batteryPercent;
+    public final boolean batteryFieldValid;
+    public final String batteryInvalidReason;
     public DiagnosticSample(FrameParser.Frame f, long wallMs, long monoNs, long attempt, String session) {
         this.wallMs=wallMs;this.monoNs=monoNs;this.attempt=attempt;this.session=session;
         angle1=f.angle;angle2=f.angle2;angle3=f.angle3;
@@ -18,6 +21,8 @@ public final class DiagnosticSample {
         rawHex=f.hex;error=f.error;protocolValid=f.valid;
         rollRaw=f.angleRaw;pitchRaw=f.angle2Raw;yawRaw=f.angle3Raw;
         accelA=f.accelA;accelB=f.accelB;accelC=f.accelC;norm=f.accelNorm;
+        batteryRaw=f.batteryRaw;batteryPercent=f.batteryPercent;
+        batteryFieldValid=f.batteryFieldValid;batteryInvalidReason=f.batteryInvalidReason;
     }
     public static final class Context {
         public final DiagnosticSample sample;
@@ -67,5 +72,12 @@ public final class DiagnosticSample {
     }
     public static String display(Context context,long nowNs) {
         return context.invalidReason(nowNs).isEmpty()?context.sample.formatted():invalidDisplay();
+    }
+    /** Decoding validity does not imply that a sample is still realtime. */
+    public static String batteryDisplay(Context context,long nowNs) {
+        if(!context.invalidReason(nowNs).isEmpty())return "电量：--";
+        DiagnosticSample s=context.sample;
+        if(s.batteryFieldValid)return "电量："+s.batteryPercent+"%";
+        return "电量：未知\n原始值："+s.batteryRaw+"；原因："+s.batteryInvalidReason;
     }
 }

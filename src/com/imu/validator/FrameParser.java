@@ -8,6 +8,10 @@ public final class FrameParser {
   public double angle, angle2, angle3, accelA, accelB, accelC, accelNorm;
   public int rollRaw,pitchRaw,yawRaw;
   public double rollDeg,pitchDeg,yawDeg;
+  // Provisional ATT-value byte-25 mapping; non-full-battery samples not verified.
+  public Integer batteryRaw,batteryPercent;
+  public boolean batteryFieldValid;
+  public String batteryInvalidReason="frame_invalid";
  }
  public static String hex(byte[] b) { StringBuilder s=new StringBuilder(); for(byte v:b) s.append(String.format(java.util.Locale.ROOT,"%02x",v&255)); return s.toString(); }
  public static byte[] bytes(String s) { byte[] b=new byte[s.length()/2]; for(int i=0;i<b.length;i++) b[i]=(byte)Integer.parseInt(s.substring(i*2,i*2+2),16); return b; }
@@ -30,6 +34,13 @@ public final class FrameParser {
   f.rollDeg=f.angle;f.pitchDeg=f.angle2;f.yawDeg=f.angle3;
   f.accelA=f.accelARaw/1000.0;f.accelB=f.accelBRaw/1000.0;f.accelC=f.accelCRaw/1000.0;
   f.accelNorm=Math.sqrt(f.accelA*f.accelA+f.accelB*f.accelB+f.accelC*f.accelC);
-  f.unknownPrefix=f.hex.substring(4,10); f.unknown23to26=f.hex.substring(46,54); f.valid=f.error.isEmpty(); return f;
+  f.unknownPrefix=f.hex.substring(4,10); f.unknown23to26=f.hex.substring(46,54); f.valid=f.error.isEmpty();
+  f.batteryRaw=b[25]&0xFF;
+  if(f.valid) {
+   f.batteryFieldValid=f.batteryRaw<=100;
+   f.batteryInvalidReason=f.batteryFieldValid?"":"outside_candidate_range_0_100";
+   if(f.batteryFieldValid)f.batteryPercent=f.batteryRaw;
+  }
+  return f;
  }
 }

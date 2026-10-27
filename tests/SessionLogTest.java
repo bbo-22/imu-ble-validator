@@ -15,15 +15,27 @@ public class SessionLogTest {
   log.snapshot((outFile,e)->{snapshot[0]=outFile;error[0]=e;done.countDown();});
   for(int i=1000;i<2000;i++)log.event(1,"notification","valid",true,"index",i);
   release.countDown();if(!done.await(15,TimeUnit.SECONDS))throw new AssertionError("snapshot timeout");
+  // Exercise actual JSON writer with valid zero/full, unsigned out-of-range and corrupt frames.
+  for(int raw:new int[]{0,100,255,50}){
+   byte[] bytes=BatteryTest.synthetic(raw);if(raw==50)bytes[29]^=1;
+   FrameParser.Frame battery=FrameParser.parse(bytes);
+   log.event(1,"notification","valid",battery.valid,"battery_raw",battery.batteryRaw,
+       "battery_percent",battery.batteryPercent,"battery_field_valid",battery.batteryFieldValid,
+       "battery_invalid_reason",battery.batteryInvalidReason);
+  }
   log.close();SessionLog.IO.submit(()->{}).get(15,TimeUnit.SECONDS);
   if(!error[0].isEmpty()||!log.error().isEmpty())throw new AssertionError(error[0]+log.error());
   if(Files.readAllLines(snapshot[0].toPath()).size()!=1001)throw new AssertionError("inconsistent snapshot boundary");
   String marker=Files.readAllLines(snapshot[0].toPath()).get(1000);
   if(!marker.contains("\"event\":\"marker\"")||!marker.contains("\"wall_time_ms\":12345")||!marker.contains("\"monotonic_ns\":2100000000")||!marker.contains("\"sample_monotonic_ns\":2000000000")||!marker.contains("\"schema_version\":2"))throw new AssertionError("marker order, clocks or schema corrupted by disk queue");
-  if(Files.readAllLines(log.file.toPath()).size()!=2001)throw new AssertionError("notifications lost");
+  java.util.List<String> lines=Files.readAllLines(log.file.toPath());
+  if(lines.size()!=2005)throw new AssertionError("notifications lost");
+  if(!lines.get(2001).contains("\"battery_percent\":0")||!lines.get(2002).contains("\"battery_percent\":100"))throw new AssertionError("zero/full battery lost");
+  if(!lines.get(2003).contains("\"battery_raw\":255")||!lines.get(2003).contains("\"battery_percent\":null")||!lines.get(2003).contains("\"battery_field_valid\":false"))throw new AssertionError("invalid percentage must be JSON null");
+  if(!lines.get(2004).contains("\"battery_invalid_reason\":\"frame_invalid\""))throw new AssertionError("corrupt battery must remain invalid in log");
   if(!Files.readAllLines(snapshot[0].toPath()).get(0).contains("attempt_id\":1"))throw new AssertionError("attempt context missing");
   SessionLog.IO.shutdown();
   try(java.util.stream.Stream<Path> paths=Files.walk(dir.toPath())){paths.sorted(java.util.Comparator.reverseOrder()).forEach(p->{try{Files.delete(p);}catch(IOException e){throw new RuntimeException(e);}});}
-  System.out.println("PASS actual SessionLog FIFO: snapshot=1000 notifications+1 marker, active=2000+1; exact marker clocks/order retained; no drops");
+  System.out.println("PASS actual SessionLog FIFO: snapshot=1000 notifications+1 marker, active=2000+1+4 battery cases; exact marker clocks/order and nullable battery fields retained; no drops");
  }
 }

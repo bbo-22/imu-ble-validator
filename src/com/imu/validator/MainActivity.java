@@ -16,14 +16,14 @@ import com.imu.validator.BleImuManager.Display;
 
 /** UI renders immutable snapshots; BLE runs on one worker, disk IO on a separate FIFO. */
 public final class MainActivity extends Activity {
-    static final String VERSION = "1.3.0";
+    static final String VERSION = "1.4.0";
     final Handler ui=new Handler(Looper.getMainLooper());
     BleImuManager manager;
     String selectedKey="";
     LinearLayout deviceList;
     ScrollView rootScroll;
     StableRows<Button> rows;
-    TextView statusView, angleView, detailView, scanView, diagnosticView, markerFeedback;
+    TextView statusView, angleView, batteryView, detailView, scanView, diagnosticView, markerFeedback;
     Button stopScanButton, connectionButton;
     EditText timeoutInput, experimentInput;
 
@@ -59,6 +59,8 @@ public final class MainActivity extends Activity {
         button(root,"导出最近一次会话",() -> exportLogs(true));
         button(root,"选择历史会话",() -> exportLogs(false));
         angleView = new TextView(this);angleView.setTextSize(30);root.addView(angleView);
+        batteryView=new TextView(this);batteryView.setText("电量：--");batteryView.setTextSize(20);root.addView(batteryView);
+        TextView batteryNote=new TextView(this);batteryNote.setText("暂定字段，待非满电样本验证");root.addView(batteryNote);
         LinearLayout diagnosticPanel=new LinearLayout(this);diagnosticPanel.setOrientation(1);
         button(root,"展开 / 收起 三轴诊断",()->diagnosticPanel.setVisibility(diagnosticPanel.getVisibility()==View.VISIBLE?View.GONE:View.VISIBLE));
         diagnosticView=new TextView(this);diagnosticView.setTypeface(android.graphics.Typeface.MONOSPACE);diagnosticView.setTextSize(14);diagnosticPanel.addView(diagnosticView);
@@ -166,6 +168,7 @@ public final class MainActivity extends Activity {
         DiagnosticSample.Context context=d.data;long nowNs=SystemClock.elapsedRealtimeNanos();
         boolean live=context.invalidReason(nowNs).isEmpty();
         setTextIfChanged(angleView,live?String.format(Locale.ROOT,"%+.2f°",context.sample.angle1):"失效 / 尚无有效数据");
+        setTextIfChanged(batteryView,DiagnosticSample.batteryDisplay(context,nowNs));
         setTextIfChanged(diagnosticView,DiagnosticSample.display(context,nowNs));setTextIfChanged(detailView,d.details);
         List<DeviceInfo> devices=manager.devices();devices.sort(MainActivity.this::compareDevices);
         for(DeviceInfo info:devices)rows.update(info.key,info.name,info.rssi,info.key.equals(selectedKey));

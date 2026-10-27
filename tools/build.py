@@ -1,5 +1,5 @@
 """Dependency-free SDK build. Does not invoke adb or touch a device."""
-import argparse,os,subprocess,shutil,zipfile,hashlib,json
+import argparse,os,subprocess,shutil,zipfile,hashlib,json,xml.etree.ElementTree as ET
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
 def run(args):
@@ -35,6 +35,10 @@ def main():
     apk=out/'imu-ble-validator-debug.apk'
     run([bt/'apksigner.bat','sign','--ks',key,'--ks-key-alias','androiddebugkey','--ks-pass','pass:android','--key-pass','pass:android','--out',apk,out/'aligned.apk'])
     run([bt/'apksigner.bat','verify','--verbose',apk]);run([bt/'aapt.exe','dump','badging',apk])
-    summary={'apk':str(apk),'size':apk.stat().st_size,'sha256':hashlib.sha256(apk.read_bytes()).hexdigest(),'compile_sdk':34,'target_sdk':34,'min_sdk':26,'build_tools':'36.0.0','jdk':str(jdk)}
+    manifest=ET.parse(ROOT/'AndroidManifest.xml').getroot();ns='{http://schemas.android.com/apk/res/android}'
+    version=manifest.attrib[ns+'versionName'];version_code=int(manifest.attrib[ns+'versionCode'])
+    versioned=out/f'imu-ble-validator-{version}-debug.apk';shutil.copyfile(apk,versioned)
+    digest=hashlib.sha256(apk.read_bytes()).hexdigest();assert hashlib.sha256(versioned.read_bytes()).hexdigest()==digest
+    summary={'apk':str(apk),'versioned_apk':str(versioned),'version_name':version,'version_code':version_code,'size':apk.stat().st_size,'sha256':digest,'compile_sdk':34,'target_sdk':34,'min_sdk':26,'build_tools':'36.0.0','jdk':str(jdk)}
     (ROOT/'reports/build-result.json').write_text(json.dumps(summary,indent=2),encoding='utf8');print(json.dumps(summary,indent=2))
 if __name__=='__main__':main()

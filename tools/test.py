@@ -17,17 +17,19 @@ def main():
     out=ROOT/'build/test-classes';out.mkdir(parents=True,exist_ok=True)
     sources=[ROOT/'src/com/imu/validator'/n for n in ['FrameParser.java','ReadingState.java','DiagnosticSample.java','YawComparison.java','InteractionFlow.java','StableRows.java','SessionFiles.java','SessionLog.java']]
     sources+=list((ROOT/'tests/stubs').rglob('*.java'))
-    sources+=[ROOT/'tests'/n for n in ['ParserTest.java','DiagnosticTest.java','SessionBoundaryTest.java','InteractionTest.java','SessionFilesTest.java','SessionLogTest.java']]
+    sources+=[ROOT/'tests'/n for n in ['ParserTest.java','BatteryTest.java','DiagnosticTest.java','SessionBoundaryTest.java','InteractionTest.java','SessionFilesTest.java','SessionLogTest.java']]
     subprocess.run(['javac','-encoding','UTF-8','-d',str(out),*map(str,sources)],check=True)
     r=subprocess.run(['java','-cp',str(out),'ParserTest',str(vectors)],text=True,capture_output=True);print(r.stdout,r.stderr);r.check_returncode()
     outputs=[r.stdout]
     legacy=ROOT/'tests/fixtures/legacy-v1-session.jsonl'
-    for test,args in [('DiagnosticTest',[]),('SessionBoundaryTest',[]),('InteractionTest',[]),('SessionFilesTest',[str(legacy)]),('SessionLogTest',[])]:
+    for test,args in [('BatteryTest',[]),('DiagnosticTest',[]),('SessionBoundaryTest',[]),('InteractionTest',[]),('SessionFilesTest',[str(legacy)]),('SessionLogTest',[])]:
         result=subprocess.run(['java','-cp',str(out),test,*args],text=True,capture_output=True,timeout=30)
         print(result.stdout,result.stderr);result.check_returncode();outputs.append(result.stdout)
-    py=subprocess.run([sys.executable,'-m','unittest','discover','-s',str(ROOT/'tests'),'-p','test_summary.py','-v'],capture_output=True,text=True)
+    py=subprocess.run([sys.executable,'-m','unittest','discover','-s',str(ROOT/'tests'),'-p','test_*.py','-v'],capture_output=True,text=True)
     print(py.stdout,py.stderr);py.check_returncode();outputs.append(py.stdout+py.stderr)
     close=subprocess.run([sys.executable,str(ROOT/'tools/test_manager_close.py')],capture_output=True,text=True,timeout=30)
     print(close.stdout,close.stderr);close.check_returncode();outputs.append(close.stdout+close.stderr)
+    capture=subprocess.run([sys.executable,str(ROOT/'tools/verify_battery_captures.py')],capture_output=True,text=True,timeout=60)
+    print(capture.stdout,capture.stderr);capture.check_returncode();outputs.append(capture.stdout+capture.stderr)
     (ROOT/'reports/test-result.txt').write_text('\n'.join(outputs)+'\ncounts='+json.dumps(counts)+'\nvector_sha256='+hashlib.sha256(vectors.read_bytes()).hexdigest(),encoding='utf8')
 if __name__=='__main__':main()

@@ -1,0 +1,109 @@
+--- a/src/frame.py
++++ b/src/frame.py
+@@ -6,7 +6,9 @@
+ 
+ def parse_frame(value):
+     b = bytes.fromhex(value) if isinstance(value, str) else bytes(value)
+-    out = {'raw_hex': b.hex(), 'length': len(b), 'valid': False, 'errors': []}
++    out = {'raw_hex': b.hex(), 'length': len(b), 'valid': False, 'errors': [],
++           'battery_raw': None, 'battery_percent': None,
++           'battery_field_valid': False, 'battery_invalid_reason': 'frame_invalid'}
+     if len(b) != 30:
+         out['errors'].append('length_not_30'); return out
+     if b[0] != 0x68: out['errors'].append('header_not_68')
+@@ -28,4 +30,10 @@
+         out[name+'_deg']=out[f'angle{axis}_candidate']
+     out['accel_tilt_relation_deg'] = math.degrees(math.atan2(-out['accel2_raw'],-out['accel3_raw']))
+     out['valid'] = not out['errors']
++    # ATT value offset 25, not HCI offset. Provisional percentage mapping only.
++    out['battery_raw'] = b[25]
++    if out['valid']:
++        out['battery_field_valid'] = b[25] <= 100
++        out['battery_invalid_reason'] = '' if b[25] <= 100 else 'outside_candidate_range_0_100'
++        if out['battery_field_valid']: out['battery_percent'] = b[25]
+     return out
+--- a/README.md
++++ b/README.md
+@@ -1,4 +1,8 @@
+ # 冰测挖机宝 / 乐挖宝蓝牙 IMU 离线协议工具
++
++2026-10-27电量更新：ATT通知数据值byte[25]新增暂定电量映射。battery_raw无符号0–255；整帧有效且raw为0–100才有battery_percent，否则null；battery_field_valid与battery_invalid_reason独立于姿态有效性。保留unknown_23_26_hex历史原始片段，23/24/26仍未知。三份完整HCI共17151帧该字节均100，与用户观察原APP显示100一致；缺少非100对照，非厂商确认。详见[当前协议表](reports/07-protocol-consolidated.md)。没有新增BLE操作。
++
++重跑本轮全量核验和独立新导出：`python imu-ble-validator/tools/verify_battery_captures.py`（在test根目录）。导出在exports/battery-v1.4，保留原导出；报告在imu-ble-validator/reports/battery-captures.json，逐帧比较历史字段不变、验证新增JSON/CSV电量列并复核原日志SHA。合成边界测试只验证代码；未来原APP自然显示非100时记录值和时间，对照同期byte25即可，无需专门耗尽电池。
+ 
+ 仅读取指定的三份BTSnoop日志；不连接蓝牙、不运行APK或原生库。所有产物在本目录。Python 3.10+，本次实际使用Python 3.14。提取、回放、测试仅标准库；静态图使用matplotlib（已安装到本目录vendor）。
+ 
+--- a/reports/07-protocol-consolidated.md
++++ b/reports/07-protocol-consolidated.md
+@@ -31,11 +31,24 @@
+ |13–14|int16 LE|候选/1000 g|加速度B候选，不直接叫物理Y|
+ |15–16|int16 LE|候选/1000 g|加速度C候选，不直接叫物理Z|
+ |17–22|三个int16 LE|候选/100 °/s|角速度候选；仅第一字段在既有安装平面实验有积分支持，不能确认全部轴比例|
+-|23–26|4原始字节|原样保留|未知；不得命名温度或电量|
++|23–24、26|原始字节|原样保留|未知；不得命名为温度、电压或状态|
++|25|uint8|暂定直接百分比|暂定电量百分比映射；三份完整HCI的17151帧全部为0x64=100，与用户观察原APP显示100一致，缺少非100对照样本，非厂商确认|
+ |27–28|uint16 LE|模65536计数|日志每帧+50；单位未知，不把非50直接认定丢包|
+ |29|uint8|sum(bytes[1:29]) & 0xff|校验；三份HCI中17151帧全部通过|
+ 
+ Java FrameParser与Python frame.py保留angle兼容字段，新增roll/pitch/yaw别名仅引用同一解码值。不在解析层减初始值、归一化到0–360、补偿安装角或计算铲斗角度。校验失败仍保留原始hex和错误，不作为有效实时角度。
++
++## 暂定电量（1.4）
++
++偏移25是ATT通知数据值的第26字节，不是HCI包偏移。Java使用`value[25] & 0xFF`，Python bytes索引天然无符号。先校验当前30字节帧长度、格式和累加校验；格式有效且raw在0–100（含0和100）时输出batteryPercent，否则为null。101–255保留batteryRaw，电量字段无效，原因为outside_candidate_range_0_100；不截断、不取模，也不使合法姿态无效。整帧无效时电量百分比null，原因为frame_invalid；非法长度的raw也为null，避免越界及伪造默认值。
++
++旧`unknown_23_26_hex`始终原样保留，是兼容历史工具的原始片段，不能理解为此后其中每个字节都完全没有候选解释；只有偏移25按用户决定新增暂定电量映射，23、24、26仍未知。01–06历史报告关于“未知23–26”的描述反映当时证据，不回写历史结论。
++
++证据边界：当前实测只覆盖100；“原APP显示100”是用户观察，不能独立确认整个0–100范围、255哨兵含义或任何固件上的一致语义。合成边界帧只验证代码，不作为实测协议证据。不查询电量、不写设备、不推断充电/剩余时间或低电量报警。
++
++通知日志新增battery_raw、battery_percent、battery_field_valid、battery_invalid_reason，以可选字段扩展schema 2。字段解析有效性不代表实时样本有效性；断开、超时、切换连接或最近帧无效时，APP沿用同一Context机制显示`电量：--`。旧日志有raw_hex时复用本解析器恢复；无原始帧且缺新字段时保持未知，不默认0或100。
++
++未来验证：原APP自然显示非100时，记下显示值和时间，与同一时段完整通知的byte[25]对照即可。现在不要求重采或专门耗尽电池。全量核验结果见[电量核验报告](../../imu-ble-validator/reports/battery-captures.json)，新增导出在exports/battery-v1.4，原日志与历史导出保留。
+ 
+ ## 安装与正负方向
+ 
+@@ -57,4 +70,4 @@
+ 
+ ## 保留未知
+ 
+-其他固件/型号的句柄布局和消息类型、Yaw触发机制和长期漂移、绝对精度、完整坐标与欧拉顺序、未知23–26、全角速度轴比例、计数单位、安全/配对条件及业务安装/机械参数均不能由当前证据完整保证。下一步业务接入必须先确认页面、框架、生命周期和校准需求；本轮不实现业务换算。
++其他固件/型号的句柄布局和消息类型、Yaw触发机制和长期漂移、绝对精度、完整坐标与欧拉顺序、未知23/24/26、电量非100语义、全角速度轴比例、计数单位、安全/配对条件及业务安装/机械参数均不能由当前证据完整保证。下一步业务接入必须先确认页面、框架、生命周期和校准需求；本轮不实现业务换算。
+--- /dev/null
++++ b/tests/test_battery.py
+@@ -0,0 +1,37 @@
++"""Synthetic checksum-adjusted battery frames are test data, not measured evidence."""
++import sys, unittest
++from pathlib import Path
++sys.path.insert(0, str(Path(__file__).resolve().parents[1]/'src'))
++from frame import parse_frame
++
++def synthetic(raw):
++    b=bytearray.fromhex('681d00847f2efb290514bacfff000018fc0500f3ff0500840a6410e20443')
++    b[25]=raw; b[29]=sum(b[1:29])&255
++    return b
++
++class BatteryTests(unittest.TestCase):
++    def test_synthetic_boundaries(self):
++        for raw in (0,1,50,99,100,101,127,128,255):
++            with self.subTest(raw=raw):
++                f=parse_frame(synthetic(raw))
++                self.assertTrue(f['valid']); self.assertEqual(f['battery_raw'],raw)
++                self.assertEqual(f['battery_field_valid'],raw<=100)
++                self.assertEqual(f['battery_percent'],raw if raw<=100 else None)
++                self.assertEqual(f['battery_invalid_reason'],'' if raw<=100 else 'outside_candidate_range_0_100')
++                self.assertEqual(f['angle1_raw'],-1234)
++                self.assertEqual(f['unknown_23_26_hex'],synthetic(raw)[23:27].hex())
++    def test_checksum_and_format_gate(self):
++        b=synthetic(100);b[25]=50
++        f=parse_frame(b)
++        self.assertFalse(f['valid']);self.assertFalse(f['checksum_ok'])
++        self.assertEqual(f['battery_raw'],50);self.assertIsNone(f['battery_percent'])
++        self.assertFalse(f['battery_field_valid']);self.assertEqual(f['battery_invalid_reason'],'frame_invalid')
++        b=synthetic(100);b[0]=0;f=parse_frame(b)
++        self.assertFalse(f['battery_field_valid']);self.assertIsNone(f['battery_percent'])
++    def test_invalid_lengths(self):
++        for n in (0,1,25,26,29,31):
++            f=parse_frame(bytes(n))
++            self.assertFalse(f['valid']);self.assertIsNone(f['battery_raw'])
++            self.assertIsNone(f['battery_percent']);self.assertFalse(f['battery_field_valid'])
++
++if __name__=='__main__':unittest.main()

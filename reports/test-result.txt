@@ -1,4 +1,6 @@
-PASS: 17151 real vectors, positive=5887, negative=11261, wraps=11, assertions=308742
+PASS: 17151 real vectors, positive=5887, negative=11261, wraps=11, assertions=325893
+
+PASS battery synthetic/state assertions=84 (synthetic data, not device evidence)
 
 PASS diagnostic assertions=21
 
@@ -8,8 +10,14 @@ PASS interaction assertions=20, updates=100000, rows=31
 
 PASS session files assertions=8
 
-PASS actual SessionLog FIFO: snapshot=1000 notifications+1 marker, active=2000+1; exact marker clocks/order retained; no drops
+PASS actual SessionLog FIFO: snapshot=1000 notifications+1 marker, active=2000+1+4 battery cases; exact marker clocks/order and nullable battery fields retained; no drops
 
+test_legacy_raw (test_battery_session.BatterySessionTest.test_legacy_raw) ... ok
+test_logged_only_validation (test_battery_session.BatterySessionTest.test_logged_only_validation) ... ok
+test_malformed_and_short_raw (test_battery_session.BatterySessionTest.test_malformed_and_short_raw) ... ok
+test_no_raw_no_default (test_battery_session.BatterySessionTest.test_no_raw_no_default) ... ok
+test_raw_overrides_logged_fields_and_invalid_checksum (test_battery_session.BatterySessionTest.test_raw_overrides_logged_fields_and_invalid_checksum) ... ok
+test_summary_without_markers_legacy_and_new (test_battery_session.BatterySessionTest.test_summary_without_markers_legacy_and_new) ... ok
 test_ambiguous_circle (test_summary.SummaryTest.test_ambiguous_circle) ... ok
 test_attempts_and_out_of_file_order (test_summary.SummaryTest.test_attempts_and_out_of_file_order) ... ok
 test_intervals_trim_and_candidates (test_summary.SummaryTest.test_intervals_trim_and_candidates) ... ok
@@ -20,12 +28,53 @@ test_short_interval_trim_has_no_negative_gap (test_summary.SummaryTest.test_shor
 test_wrap (test_summary.SummaryTest.test_wrap) ... ok
 
 ----------------------------------------------------------------------
-Ran 8 tests in 0.012s
+Ran 14 tests in 0.019s
 
 OK
 
 scannerActive=false tokenInvalid=true stopped=1 quit=true
  
+
+{
+  "total_frames": 17151,
+  "evidence": "All observed byte[25] values are 100. Non-100 percentage semantics remain unverified.",
+  "captures": [
+    {
+      "file": "btsnoop_hci_20261026_101013.log",
+      "sha256": "5193d1f1fac042a30081c090aad2bf1488ff6c2d5877d34b2cb4eb84c5033d56",
+      "frames": 6267,
+      "battery_raw_distribution": {
+        "100": 6267
+      },
+      "unchanged_field_comparisons": 231879,
+      "json_csv_verified": true,
+      "issues": []
+    },
+    {
+      "file": "btsnoop_hci_20261026_112137.log",
+      "sha256": "2039b6e3e1c8b1a147da8ddadcafb304190d26673ad17cd4e88e8939a7d7b4bc",
+      "frames": 5797,
+      "battery_raw_distribution": {
+        "100": 5797
+      },
+      "unchanged_field_comparisons": 214489,
+      "json_csv_verified": true,
+      "issues": []
+    },
+    {
+      "file": "btsnoop_hci_20261026_144426.log",
+      "sha256": "60058de4a690678c61d25a15ee7f4c42a6b4ab1963ab7c32442398853ded25e0",
+      "frames": 5087,
+      "battery_raw_distribution": {
+        "100": 5087
+      },
+      "unchanged_field_comparisons": 188219,
+      "json_csv_verified": true,
+      "issues": []
+    }
+  ],
+  "exports": "C:\\Users\\xub\\Desktop\\test\\imu-protocol-analysis\\exports\\battery-v1.4"
+}
 
 counts={"101013": 6267, "112137": 5797, "144426": 5087}
 vector_sha256=e81a1ce5df147a501e25211d0cd378ce24b5b06149f02202ba049c41ac657358

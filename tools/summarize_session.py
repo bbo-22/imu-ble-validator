@@ -1,5 +1,6 @@
 """Summarize manually marked stationary intervals. Python stdlib only; no axis claims."""
 import argparse,csv,datetime,json,math,statistics as st,sys
+from collections import Counter
 from pathlib import Path
 
 ANGLES=[f'angle{i}_deg_candidate' for i in (1,2,3)]
@@ -56,6 +57,48 @@ def notification_values(event):
     if values[ANGLES[0]] is None:values[ANGLES[0]]=event.get('angle1')
     return values
 
+def notification_battery(event):
+    """Historical decoding only; does not assert current realtime sample validity."""
+    def unknown(reason,raw=None,source='unknown'):
+        return dict(battery_raw=raw,battery_percent=None,battery_field_valid=False,
+                    battery_invalid_reason=reason,battery_source=source)
+    raw_hex=event.get('raw_hex')
+    if raw_hex:
+        parser_root=Path(__file__).resolve().parents[2]/'imu-protocol-analysis/src'
+        if not parser_root.is_dir():return unknown('protocol_parser_unavailable')
+        if str(parser_root) not in sys.path:sys.path.insert(0,str(parser_root))
+        from frame import parse_frame
+        try:
+            if not isinstance(raw_hex,str):raise ValueError('raw_hex must be text')
+            f=parse_frame(raw_hex)
+        except (ValueError,TypeError):return unknown('raw_hex_unreadable',source='raw_hex')
+        return dict({k:f[k] for k in ('battery_raw','battery_percent','battery_field_valid','battery_invalid_reason')},battery_source='raw_hex')
+    keys=('battery_raw','battery_percent','battery_field_valid','battery_invalid_reason')
+    if not all(k in event for k in keys):return unknown('battery_fields_missing')
+    raw=event['battery_raw'];percent=event['battery_percent'];valid=event['battery_field_valid'];reason=event['battery_invalid_reason']
+    if not event.get('valid',False):return unknown('frame_invalid',raw,source='logged_fields')
+    # Validate logged fields; never manufacture a missing percentage or raw byte.
+    if type(raw) is not int or not 0<=raw<=255:return unknown('invalid_logged_battery_fields')
+    if valid is True and type(percent) is int and 0<=raw<=100 and percent==raw and reason=='':
+        return dict({k:event[k] for k in keys},battery_source='logged_fields')
+    if valid is False and percent is None and isinstance(reason,str) and reason:
+        return dict({k:event[k] for k in keys},battery_source='logged_fields')
+    return unknown('invalid_logged_battery_fields',raw,source='logged_fields')
+
+def battery_summary(events):
+    groups={}
+    for e in events:
+        if e.get('event')=='notification':groups.setdefault((e['session_id'],e['attempt_id']),[]).append(notification_battery(e))
+    result=[]
+    for (session,attempt),fields in groups.items():
+        result.append(dict(session_id=session,attempt_id=attempt,notifications=len(fields),
+            field_valid=sum(f['battery_field_valid'] for f in fields),
+            raw_distribution=dict(Counter(str(f['battery_raw']) for f in fields if f['battery_raw'] is not None)),
+            percent_distribution=dict(Counter(str(f['battery_percent']) for f in fields if f['battery_field_valid'])),
+            invalid_reasons=dict(Counter(f['battery_invalid_reason'] for f in fields if not f['battery_field_valid']))))
+    return dict(mapping='provisional ATT value byte[25], not manufacturer confirmed',
+                validity='Historical field decoding only; not current realtime sample validity.',attempts=result)
+
 def summarize(events,trim_seconds=2,min_samples=20,gap_ms=2000,angle_span=5,accel_std=.05):
     intervals=[];warnings=[]
     if any(b['monotonic_ns']<a['monotonic_ns'] for a,b in zip(events,events[1:])):
@@ -105,7 +148,8 @@ def summarize(events,trim_seconds=2,min_samples=20,gap_ms=2000,angle_span=5,acce
     if not intervals:warnings.append('no_stable_markers: old/unmarked logs are readable, but no automatic action labels are invented')
     return dict(schema='imu-marked-summary-v1',axis_definitions='candidates; no axis/rotation order confirmation',
                 note='Circular fluctuations are offsets from statistical center, not a user reference or 3D relative pose. Local reference is not enabled.',
-                thresholds=dict(min_samples=min_samples,gap_ms=gap_ms,angle_arc_span_deg=angle_span,accel_axis_std_g=accel_std),warnings=warnings,intervals=intervals)
+                thresholds=dict(min_samples=min_samples,gap_ms=gap_ms,angle_arc_span_deg=angle_span,accel_axis_std_g=accel_std),warnings=warnings,intervals=intervals,
+                battery_summary=battery_summary(events))
 
 def main():
     p=argparse.ArgumentParser(description=__doc__);p.add_argument('session',type=Path);p.add_argument('--trim-seconds',type=float,default=2)

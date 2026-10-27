@@ -1,0 +1,40 @@
+{
+  "total_frames": 17151,
+  "evidence": "All observed byte[25] values are 100. Non-100 percentage semantics remain unverified.",
+  "captures": [
+    {
+      "file": "btsnoop_hci_20261026_101013.log",
+      "sha256": "5193d1f1fac042a30081c090aad2bf1488ff6c2d5877d34b2cb4eb84c5033d56",
+      "frames": 6267,
+      "battery_raw_distribution": {
+        "100": 6267
+      },
+      "unchanged_field_comparisons": 231879,
+      "json_csv_verified": true,
+      "issues": []
+    },
+    {
+      "file": "btsnoop_hci_20261026_112137.log",
+      "sha256": "2039b6e3e1c8b1a147da8ddadcafb304190d26673ad17cd4e88e8939a7d7b4bc",
+      "frames": 5797,
+      "battery_raw_distribution": {
+        "100": 5797
+      },
+      "unchanged_field_comparisons": 214489,
+      "json_csv_verified": true,
+      "issues": []
+    },
+    {
+      "file": "btsnoop_hci_20261026_144426.log",
+      "sha256": "60058de4a690678c61d25a15ee7f4c42a6b4ab1963ab7c32442398853ded25e0",
+      "frames": 5087,
+      "battery_raw_distribution": {
+        "100": 5087
+      },
+      "unchanged_field_comparisons": 188219,
+      "json_csv_verified": true,
+      "issues": []
+    }
+  ],
+  "exports": "C:\\Users\\xub\\Desktop\\test\\imu-protocol-analysis\\exports\\battery-v1.4"
+}

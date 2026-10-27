@@ -1,0 +1,24 @@
+test_checksum_and_format_gate (test_battery.BatteryTests.test_checksum_and_format_gate) ... ok
+test_invalid_lengths (test_battery.BatteryTests.test_invalid_lengths) ... ok
+test_synthetic_boundaries (test_battery.BatteryTests.test_synthetic_boundaries) ... ok
+test_captured_truncation (test_protocol.ProtocolTests.test_captured_truncation) ... ok
+test_corrupt (test_protocol.ProtocolTests.test_corrupt) ... ok
+test_hci_length (test_protocol.ProtocolTests.test_hci_length) ... ok
+test_header (test_protocol.ProtocolTests.test_header) ... ok
+test_negative (test_protocol.ProtocolTests.test_negative) ... ok
+test_orphan (test_protocol.ProtocolTests.test_orphan) ... ok
+test_other_cid (test_protocol.ProtocolTests.test_other_cid) ... ok
+test_real_captures (test_protocol.ProtocolTests.test_real_captures) ... ok
+test_reassembly (test_protocol.ProtocolTests.test_reassembly) ... ok
+test_replay (test_protocol.ProtocolTests.test_replay) ... ok
+test_selection (test_protocol.ProtocolTests.test_selection) ... ok
+test_short_long (test_protocol.ProtocolTests.test_short_long) ... ok
+test_tail_header (test_protocol.ProtocolTests.test_tail_header) ... ok
+test_tail_payload (test_protocol.ProtocolTests.test_tail_payload) ... ok
+test_unfinished (test_protocol.ProtocolTests.test_unfinished) ... ok
+test_wrap (test_protocol.ProtocolTests.test_wrap) ... ok
+
+----------------------------------------------------------------------
+Ran 19 tests in 0.353s
+
+OK
