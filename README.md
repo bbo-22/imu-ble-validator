@@ -1,6 +1,15 @@
-# IMU 接收验证 v1.2.0
+# IMU 接收验证 v1.3.0
 
-独立Java原生Android APP，包名`com.imu.validator`，versionCode=3；页面标题显示v1.2.0。minSdk26/targetSdk34，支持Android10。保留已通过用户真机稳定性验收的1.1扫描/连接/订阅/断开流程、6801服务、6803通知特征、Notify/CCCD校验及MTU回调≥33检查；新增三轴候选诊断与人工实验标记。未修改Python协议工具或业务项目。
+独立Java原生Android APP，包名`com.imu.validator`，versionCode=4；页面标题显示v1.3.0。minSdk26/targetSdk34，支持Android10。连续接收、手动重连、IMU断电及手机蓝牙关闭四项均为**用户验收通过**，不是本轮自动执行。以用户当前10434a6代码为基线，保留通信逻辑，提取为复用管理器；不修改业务项目、不自动连接设备。
+
+## 本轮固化与复用（1.3）
+
+- [当前协议说明](../imu-protocol-analysis/reports/07-protocol-consolidated.md)：字段、字节序、比例、实物正负方向、证据等级与未知边界。
+- [Yaw参考核查](reports/yaw-reference-audit.md)：两份真实手机日志的三个尝试首5帧均为00 00=0°；1.2日志4998条Yaw与原始值一致。没有本地减初值；不能断言由连接、订阅还是设备其他机制触发。
+- [接入说明](docs/integration.md)、[调用示例](examples/ReceiverExample.java)、[业务接入前清单](docs/business-preintegration-checklist.md)。核心解析/样本复用原实现，BLE流程从Activity移入BleImuManager，APP仍用同一份代码。
+- 构建额外产出`build/imu-protocol-core.jar`与`build/imu-ble-module.jar`。示例单独编译，不运行、不自动扫描/连接。
+- Yaw展示为“相对偏航角Yaw（本次连接）”：重新连接后参考可能重置，不是北向航向。新连接清空旧样本，无本地参考或跨断线叠加；YawComparison明确拒绝跨session/attempt比较。
+- [验证与审查](reports/module-validation-v1.3.md)：原GATT方法的机械迁移等价性、真实帧、会话边界和资源释放测试。原始日志和历史报告保留；Python解析器仅增加同值roll/pitch/yaw别名。
 
 ## 构建、测试与安装
 
@@ -23,9 +32,9 @@ APK：`C:\Users\xub\Desktop\test\imu-ble-validator\build\imu-ble-validator-debug
 
 本轮没有执行adb设备命令、安装或启动APP，也没有连接IMU。测试通过和构建成功不代表真实IMU联调成功。
 
-## 三轴诊断与人工实验（1.2新增）
+## 三轴诊断与人工实验
 
-主angle1继续保留。展开“三轴诊断”后同时显示angle1/Roll候选、angle2/Pitch候选、angle3/Yaw候选、加速度A/B/C及向量模长，保留两位小数。角度为候选°、加速度为候选g；A/B/C不等同已确认的物理X/Y/Z。angle1安装平面方向/尺度已有实验支持，angle2/Pitch解释有较强支持；angle3/Yaw的参考方向及长期漂移未确认，不是罗盘航向。轴名与旋转顺序仍待验证。
+主angle1继续保留。展开“三轴诊断”后同时显示Roll(angle1)、Pitch(angle2)、Yaw(angle3)、加速度A/B/C及向量模长，保留两位小数。安装基准为标签面竖直、文字正向、箭头朝下：正对标签面，标签平面内顺时针Roll为正；从基准倾至标签面朝下Pitch为正、朝上为负；基准附近绕竖直轴，按用户实验视角标签面朝左转Yaw为正、朝右转为负。上述尺度/方向获当前设备实物实验支持，不能推广成厂商完整坐标系或任意姿态欧拉顺序；Pitch近±90°时不要独立解释Roll/Yaw。加速度仍为候选g，A/B/C不直接叫物理X/Y/Z；Yaw参考机制和长期漂移未知。
 
 主角度与全部诊断字段使用同一有效性判断：断开、超时、尚未订阅、最近帧无效时统一显示失效。原始角度保留设备的±180表示，+180与−180是相同方向。本轮暂不启用可选的“本地参考”功能，避免引入跨会话参考行为。离线圆周波动只是相对统计中心的偏差，不是用户参考角差或三维相对姿态。
 
@@ -39,7 +48,7 @@ APK：`C:\Users\xub\Desktop\test\imu-ble-validator\build\imu-ble-validator-debug
 
 ## JSONL schema 2 与离线汇总
 
-沿用JSONL事件、session_id、attempt_id、墙钟/单调时间和旧angle1字段，每行新增schema_version=2。notification增加angle1_raw/angle2_raw/angle3_raw、angle1_deg_candidate/angle2_deg_candidate/angle3_deg_candidate、accelA/B/C_raw与accelA/B/C_g_candidate、accel_norm_g_candidate及length；不向设备写任何校准或清零命令。
+沿用JSONL事件、session_id、attempt_id、墙钟/单调时间和旧angle1字段，每行新增schema_version=2。notification保留angle1/angle2/angle3兼容字段及angle1_raw/angle2_raw/angle3_raw、angle1_deg_candidate/angle2_deg_candidate/angle3_deg_candidate、accelA/B/C_raw与accelA/B/C_g_candidate、accel_norm_g_candidate及length；新增roll_deg/pitch_deg/yaw_deg同值别名；不向设备写任何校准或清零命令。
 
 marker含experiment_name、action、点击时的wall_time_ms/monotonic_ns及click_*别名、sample_wall_time_ms/sample_monotonic_ns/sample_age_ms、sample_session_id/sample_attempt_id、data_valid/invalid_reason与三个候选角度。点击入口立即复制最近已处理有效样本及其上下文，随后排队的磁盘写入不会改写时间或换成另一个attempt的样本。样本时间来自通知回调入口；无效时保留可用的样本时间和年龄供诊断，但三个角度均为null。
 
@@ -76,7 +85,7 @@ python imu-ble-validator/tools/summarize_session.py imu-ble-validator/reports/ex
 
 ## 人工验收
 
-1. 更新后确认标题为 **v1.2.0**。开启手机蓝牙与位置服务；Android10授权使用期间精确定位后再点扫描。Android12+请求附近设备权限。
+1. 更新后确认标题为 **v1.3.0**。开启手机蓝牙与位置服务；Android10授权使用期间精确定位后再点扫描。Android12+请求附近设备权限。
 2. 扫描倒计时运行时，点`BDA446T-26040035`。应立即看到“正在连接”，扫描停止，按钮变为取消连接。
 3. 应继续看到服务发现→MTU→CCCD确认→等待首个有效帧→正在接收；若失败，应有明确原因/超时，约15秒连接超时后可重试。服务发现12秒、MTU/CCCD/首有效帧各10秒。没有收到首有效帧不能显示为接收成功。
 4. 连接期间再次点设备应提示已有连接任务；取消后可重试。重扫会废止旧扫描计时器，主动停止后保留可点击结果。失败后离开/返回页面不应抹掉失败说明。
@@ -102,7 +111,7 @@ python imu-ble-validator/tools/summarize_session.py imu-ble-validator/reports/ex
 
 ## 离线验证与边界
 
-`tools/test.py`：全部17151帧的六个字段Java/Python移植交叉核验（257289条断言）；高频100000次扫描更新行身份、点击到可注入BLE端口、重复拒绝、旧scan token、旧attempt、取消/失败/超时后重试；日志序号/防覆盖/回拨/历史兼容；实际SessionLog在磁盘阻塞替身下无同步阻塞，2000条通知加1条marker无丢失，快照边界1000条通知加marker，精确保留点击时钟。新增诊断与离线分段/圆周统计测试。测试用Android/JSON最小替身，不打包进APK。
+`tools/test.py`：全部17151帧的六个字段Java/Python移植交叉核验（308742条断言）；高频100000次扫描更新行身份、点击到可注入BLE端口、重复拒绝、旧scan token、旧attempt、取消/失败/超时后重试；日志序号/防覆盖/回拨/历史兼容；实际SessionLog在磁盘阻塞替身下无同步阻塞，2000条通知加1条marker无丢失，快照边界1000条通知加marker，精确保留点击时钟。新增诊断与离线分段/圆周统计测试。测试用Android/JSON最小替身，不打包进APK。
 
 根因证据及未确认项见`reports/diagnosis-v1.1.md`。`tools/repro_click.py`刻意重放冻结1.0方法：默认应失败（connect_calls=0），加`--no-refresh`控制组通过（connect_calls=1）。它是诊断模型，未替代Android真机触摸分发或厂商BLE栈测试。最终回归走新代码公共边界。
 

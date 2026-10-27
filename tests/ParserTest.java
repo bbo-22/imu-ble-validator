@@ -7,6 +7,9 @@ public class ParserTest {
   for(String line:Files.readAllLines(Paths.get(args[0]))){if(line.startsWith("#"))continue;String[] a=line.split("\t");FrameParser.Frame f=FrameParser.parse(FrameParser.bytes(a[1]));check(f.valid,"real frame valid "+n);check(f.hex.equals(a[1]),"hex");check(f.angleRaw==Integer.parseInt(a[2]),"signed angle");check(f.counter==Integer.parseInt(a[3]),"unsigned counter");check(Math.abs(f.angle-Double.parseDouble(a[4]))<1e-10,"converted angle");
    int[] raw={f.angle2Raw,f.angle3Raw,f.accelARaw,f.accelBRaw,f.accelCRaw};double[] scaled={f.angle2,f.angle3,f.accelA,f.accelB,f.accelC};
    for(int i=0;i<5;i++){check(raw[i]==Integer.parseInt(a[5+i]),"multi-axis raw "+i);check(Math.abs(scaled[i]-Double.parseDouble(a[10+i]))<1e-10,"multi-axis scaled "+i);}
+   check(f.rollRaw==Integer.parseInt(a[2])&&Math.abs(f.rollDeg-Double.parseDouble(a[4]))<1e-10,"roll alias matches old vectors");
+   check(f.pitchRaw==Integer.parseInt(a[5])&&Math.abs(f.pitchDeg-Double.parseDouble(a[10]))<1e-10,"pitch alias matches old vectors");
+   check(f.yawRaw==Integer.parseInt(a[6])&&Math.abs(f.yawDeg-Double.parseDouble(a[11]))<1e-10,"yaw raw, no initial-value subtraction");
    if(file.equals(a[0])&&previous>f.counter){check(FrameParser.delta(previous,f.counter)==50,"wrap delta");wraps++;}file=a[0];previous=f.counter;if(f.angleRaw<0)neg++;if(f.angleRaw>0)pos++;n++;
   }
   check(n==17151,"all captures");check(neg>0&&pos>0&&wraps==11,"sign and wraps");

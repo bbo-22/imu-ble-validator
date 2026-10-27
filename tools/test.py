@@ -10,6 +10,7 @@ def main():
         p=ROOT.parent/'imu-protocol-analysis/exports'/f'btsnoop_hci_20261026_{suffix}-frames.json';rows=json.loads(p.read_text(encoding='utf8'));counts[suffix]=len(rows)
         for row in rows:
             f=parse_frame(row['raw_hex']);assert f['valid'];assert f['angle1_raw']==row['angle1_raw']
+            assert all(f[k]==row[k] for k in ['angle1_raw','angle2_raw','angle3_raw','angle1_candidate','angle2_candidate','angle3_candidate','accel1_raw','accel2_raw','accel3_raw']), 'existing exported frame changed'
             extra=[f[k] for k in ['angle2_raw','angle3_raw','accel1_raw','accel2_raw','accel3_raw','angle2_candidate','angle3_candidate','accel1_candidate','accel2_candidate','accel3_candidate']]
             lines.append(f"{suffix}\t{f['raw_hex']}\t{f['angle1_raw']}\t{f['counter_raw']}\t{f['angle1_candidate']}\t"+'\t'.join(map(str,extra)))
     vectors=ROOT/'test-vectors/real-frames.tsv';vectors.write_text('\n'.join(lines)+'\n',encoding='utf8')
@@ -26,5 +27,7 @@ def main():
         print(result.stdout,result.stderr);result.check_returncode();outputs.append(result.stdout)
     py=subprocess.run([sys.executable,'-m','unittest','discover','-s',str(ROOT/'tests'),'-p','test_summary.py','-v'],capture_output=True,text=True)
     print(py.stdout,py.stderr);py.check_returncode();outputs.append(py.stdout+py.stderr)
+    close=subprocess.run([sys.executable,str(ROOT/'tools/test_manager_close.py')],capture_output=True,text=True,timeout=30)
+    print(close.stdout,close.stderr);close.check_returncode();outputs.append(close.stdout+close.stderr)
     (ROOT/'reports/test-result.txt').write_text('\n'.join(outputs)+'\ncounts='+json.dumps(counts)+'\nvector_sha256='+hashlib.sha256(vectors.read_bytes()).hexdigest(),encoding='utf8')
 if __name__=='__main__':main()

@@ -1,13 +1,8 @@
 package com.imu.validator;
 
-import android.Manifest;
 import android.app.*;
 import android.os.*;
 import android.content.*;
-import android.content.pm.PackageManager;
-import android.bluetooth.*;
-import android.bluetooth.le.*;
-import android.location.LocationManager;
 import android.net.Uri;
 import android.view.*;
 import android.view.inputmethod.InputMethodManager;
@@ -15,7 +10,6 @@ import android.widget.*;
 import java.io.*;
 import java.nio.file.*;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 import com.imu.validator.BleImuManager.DeviceInfo;
 import com.imu.validator.BleImuManager.Display;
 
@@ -31,8 +25,6 @@ public final class MainActivity extends Activity {
     TextView statusView, angleView, detailView, scanView, diagnosticView, markerFeedback;
     Button stopScanButton, connectionButton;
     EditText timeoutInput, experimentInput;
-
-
 
     @Override public void onCreate(Bundle state) {
         super.onCreate(state);
@@ -155,7 +147,6 @@ public final class MainActivity extends Activity {
         manager.select(key,info,wall,mono);
     }
 
-
     void requestMissingPermissions() {
         String[] p=BleImuManager.requiredPermissions();
         List<String> missing=new ArrayList<>();for(String s:p)if(checkSelfPermission(s)!=PackageManager.PERMISSION_GRANTED)missing.add(s);
@@ -165,21 +156,6 @@ public final class MainActivity extends Activity {
         super.onRequestPermissionsResult(c,p,r);
         manager.permissionResult(p,r);
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
     final Runnable renderLoop=new Runnable(){public void run(){
         Display d=manager.snapshot();selectedKey=d.selectedKey;setTextIfChanged(statusView,"状态："+d.status+"\n连接阶段："+d.phase);

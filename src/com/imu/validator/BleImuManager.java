@@ -104,7 +104,7 @@ public final class BleImuManager implements AutoCloseable {
     }
     @Override public void close(){
         ui.removeCallbacksAndMessages(null);
-        worker.post(()->{worker.removeCallbacksAndMessages(null);if(gatt!=null)disconnect("manager_closed",false);if(log!=null){summary();log.close();}bleThread.quitSafely();});
+        worker.post(()->{if(flow!=null)flow.stopScan();worker.removeCallbacksAndMessages(null);if(gatt!=null)disconnect("manager_closed",false);if(log!=null){summary();log.close();}bleThread.quitSafely();});
     }
     public long select(String key,DeviceInfo info,long wall,long mono){
         long id=attemptSequence.incrementAndGet();selectedKey=key;

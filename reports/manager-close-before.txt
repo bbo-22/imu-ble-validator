@@ -1,0 +1,3 @@
+scannerActive=true tokenInvalid=false stopped=0 quit=true
+Exception in thread "main" java.lang.AssertionError: Direct close leaked active scanner
+	at CloseProbe.main(CloseProbe.java:20)
