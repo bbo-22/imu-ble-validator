@@ -22,6 +22,8 @@
 
 `tools/build.py`实际运行SDK编译/DEX/对齐/签名，并以模块JAR编译examples/ReceiverExample.java。生成debug APK、纯Java core.jar及Android BLE模块JAR，无新框架/构建体系。versionName1.3.0、versionCode4，相同包名/调试密钥，install -r保留数据。完整结果以build-result.json/build-output.txt/test-result.txt为准。
 
+最终构建补回权限检查所需PackageManager导入。沙箱内JDK21在关闭示例编译所读取JAR时曾报AccessDeniedException且返回0；在获准的本机构建环境重新执行同一build.py后，无该异常，示例编译和APK签名验证均完成。未因此更改BLE代码或忽略异常。最终完整测试再次通过；五份原始输入SHA保持不变（input-preservation.json）。
+
 ## 独立close缺陷的诊断与修复
 
 审查发现：新管理器若被宿主在扫描中直接close，而未先background，原close取消worker计时器但未停止scanner。此为新复用边界缺陷；验证APP的既有onStop停扫通常掩盖它，不解释此前Yaw现象。
@@ -36,7 +38,7 @@
 
 ## Spec 审查
 
-另一审查独立发现同一P2资源释放缺口，并提示Yaw表中1.2行的“1.1未显示”残留文字，均已修正。Yaw原始证据和参考边界、协议兼容字段、旧样本/回调隔离符合本轮范围。Standards和Spec各1项P2（同一问题），修复后待复核结论记录在本报告后续更新中。
+另一审查独立发现同一P2资源释放缺口，并提示Yaw表中1.2行的“1.1未显示”残留文字，均已修正。Yaw原始证据和参考边界、协议兼容字段、旧样本/回调隔离符合本轮范围。Standards和Spec各1项P2（同一问题）；两个审查均已复核3e8ec96，确认原问题解决，未发现新的阻断问题。
 
 ## 尚待人工确认
 

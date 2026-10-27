@@ -11,22 +11,6 @@
 ����: [options] Ŀ��ֵ 8 �ѹ�ʱ������δ�����а���ɾ��
 ����: [options] Ҫ�����й��ѹ�ʱѡ��ľ���, ��ʹ�� -Xlint:-options��
 3 ������
-������ (21.0.12.1) �г����쳣��������� Bug Database (https://bugs.java.com) ��û���ҵ��йظô���� Java ������ Bug����ͨ�� Java Bug ����ҳ (https://bugreport.java.com) �ύ Java ������ Bug�����ڱ����и������ĳ������������Ϣ�Լ����ݵ� Java �������Ĳ�����лл��
-java.nio.file.AccessDeniedException: C:\Users\xub\Desktop\test\imu-ble-validator\build\imu-ble-module.jar
-	at java.base/sun.nio.fs.WindowsException.translateToIOException(WindowsException.java:89)
-	at java.base/sun.nio.fs.WindowsException.rethrowAsIOException(WindowsException.java:96)
-	at java.base/sun.nio.fs.WindowsLinkSupport.getRealPath(WindowsLinkSupport.java:288)
-	at java.base/sun.nio.fs.WindowsPath.toRealPath(WindowsPath.java:947)
-	at java.base/sun.nio.fs.WindowsPath.toRealPath(WindowsPath.java:42)
-	at jdk.zipfs/jdk.nio.zipfs.ZipFileSystemProvider.lambda$removeFileSystem$0(ZipFileSystemProvider.java:324)
-	at java.base/java.security.AccessController.doPrivileged(AccessController.java:571)
-	at jdk.zipfs/jdk.nio.zipfs.ZipFileSystemProvider.removeFileSystem(ZipFileSystemProvider.java:326)
-	at jdk.zipfs/jdk.nio.zipfs.ZipFileSystem.close(ZipFileSystem.java:526)
-	at jdk.compiler/com.sun.tools.javac.file.JavacFileManager$ArchiveContainer.close(JavacFileManager.java:657)
-	at jdk.compiler/com.sun.tools.javac.file.JavacFileManager.close(JavacFileManager.java:735)
-	at jdk.compiler/com.sun.tools.javac.main.Main.compile(Main.java:182)
-	at jdk.compiler/com.sun.tools.javac.Main.compile(Main.java:64)
-	at jdk.compiler/com.sun.tools.javac.Main.main(Main.java:50)
 > D:\Android\SDK\build-tools\36.0.0\d8.bat --min-api 26 --lib D:\Android\SDK\platforms\android-34\android.jar --output C:\Users\xub\Desktop\test\imu-ble-validator\build\dex C:\Users\xub\Desktop\test\imu-ble-validator\build\classes.jar
 > D:\Android\SDK\build-tools\36.0.0\zipalign.exe -f 4 C:\Users\xub\Desktop\test\imu-ble-validator\build\unsigned.apk C:\Users\xub\Desktop\test\imu-ble-validator\build\aligned.apk
 > D:\Android\SDK\build-tools\36.0.0\apksigner.bat sign --ks C:\Users\xub\Desktop\test\imu-ble-validator\debug.keystore --ks-key-alias androiddebugkey --ks-pass pass:android --key-pass pass:android --out C:\Users\xub\Desktop\test\imu-ble-validator\build\imu-ble-validator-debug.apk C:\Users\xub\Desktop\test\imu-ble-validator\build\aligned.apk
@@ -69,7 +53,7 @@ densities:
 {
   "apk": "C:\\Users\\xub\\Desktop\\test\\imu-ble-validator\\build\\imu-ble-validator-debug.apk",
   "size": 90515,
-  "sha256": "b5aefdad9d97b6e7e4b7c7cae849d4a6aefd011fc40210e625ea005e8a2650b3",
+  "sha256": "af8cf0a907d5f5026dded14c8fd0883b3d10e1d2145b2dfd63a755404b6fd9c1",
   "compile_sdk": 34,
   "target_sdk": 34,
   "min_sdk": 26,
